@@ -18,8 +18,10 @@ pub fn challenge_1() -> String {
 pub fn challenge_2() -> String {
     let a = "1c0111001f010100061a024b53535009181c".from_hex().unwrap();
     let b = "686974207468652062756c6c277320657965".from_hex().unwrap();
-    xor_bytes(&a, &b).to_hex()
+    xor(&a, &b).to_hex()
 }
+
+
 
 #[cfg(test)]
 mod tests {
