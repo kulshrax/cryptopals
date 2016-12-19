@@ -1,6 +1,3 @@
-use std::ops::Mul;
-use std::iter::Sum;
-
 /// The alphabet stored as a static array for ease of access.
 static ALPHABET: [char; 26] = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -38,20 +35,52 @@ static LETTER_FREQS: [f64; 26] = [
     0.00074, // Z
 ];
 
+/// Compute L2 (Euclidean) distance between two vectors.
+fn l2_distance(u: &[f64], v: &[f64]) -> f64 {
+    u.iter().zip(v.iter()).map(|(x, y)| (x - y).powi(2)).sum()
+}
+
+/// Find the position of the given character in the English alphabet.
+/// Return None if the character is not part of the alphabet.
+fn alphabet_position(c: char) -> Option<usize> {
+    let mut iter = c.to_lowercase();
+
+    // Ensure that this character converts to exactly 1 lowercase character.
+    if let Some(lower) = iter.next() {
+        if let None = iter.next() {
+            return ALPHABET.iter().position(|&x| x == lower);
+        }
+    }
+    None
+}
+
+/// Score a text based on similarity to known English letter frequencies.
+pub fn score_text(text: &str) -> f64 {
+    let mut counts = [0.0f64; 26];
+    let mut total = 0.0f64;
+
+    // Count the occurrence of letters in the input text.
+    for c in text.chars() {
+        if let Some(i) = alphabet_position(c) {
+            let count = &mut counts[i];
+            *count += 1.0;
+            total += 1.0;
+        }
+    }
+
+    // Normalize by total number of characters (not just total number of letters).
+    //let total = text.chars().count() as f64;
+    for count in &mut counts {
+        *count = *count / total;
+    }
+
+    1.0 - l2_distance(&LETTER_FREQS, &counts)
+}
+
 /// XOR two byte strings, truncating the longer one if the sizes are different.
 pub fn xor<'a, 'b, A, B>(a: A, b: B) -> Vec<u8>
     where A: IntoIterator<Item = &'a u8>,
           B: IntoIterator<Item = &'b u8>
 {
     a.into_iter().zip(b.into_iter()).map(|(x, y)| *x ^ *y).collect()
-}
-
-/// Compute the dot product of two vectors.
-pub fn dot<T>(a: &[T], b: &[T]) -> T where T: Copy + Sum + Mul<Output = T> {
-    a.iter().zip(b.iter()).map(|(x, y)| *x * *y).sum()
-}
-
-/// Score a text based on similarity to known English letter frequencies.
-pub fn score_text(text: &str) -> f64 {
-    return 1.0
 }

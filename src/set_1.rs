@@ -1,3 +1,4 @@
+use std::f64;
 use std::iter;
 
 use rustc_serialize::base64::*;
@@ -30,16 +31,20 @@ pub fn challenge_3() -> String {
     let input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
     let input_bytes = input.from_hex().unwrap();
 
-    let mut result = "".to_string();
-    let mut best_score = 0.0f64;
+    let mut result = String::new();
+    let mut best_score = f64::MIN;
+
     for byte in 0..255u8 {
         let decoded_bytes = xor(&input_bytes, iter::repeat(&byte));
-        let decoded = String::from_utf8(decoded_bytes).unwrap();
-        let score = score_text(&decoded);
-
-        if score > best_score {
-            best_score = score;
-            result = decoded;
+        if let Ok(decoded) = String::from_utf8(decoded_bytes) {
+            let score = score_text(&decoded);
+            if score > 0.9 {
+                println!("{} {}", decoded, score);
+            }
+            if score > best_score {
+                best_score = score;
+                result = decoded;
+            }
         }
     }
 
@@ -61,6 +66,13 @@ mod tests {
     fn test_challenge_2() {
         let expected = "746865206b696420646f6e277420706c6179";
         let result = challenge_2();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_challenge_3() {
+        let expected = "Cooking MC's like a pound of bacon";
+        let result = challenge_3();
         assert_eq!(result, expected);
     }
 }
