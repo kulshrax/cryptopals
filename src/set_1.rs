@@ -1,6 +1,8 @@
 use rustc_serialize::base64::*;
 use rustc_serialize::hex::*;
 
+use utils::*;
+
 pub fn challenge_1() -> String {
     let input = "49276d206b696c6c696e6720796f757220627261696e206c\
                  696b65206120706f69736f6e6f7573206d757368726f6f6d";
@@ -13,6 +15,10 @@ pub fn challenge_1() -> String {
     input.from_hex().unwrap().to_base64(config)
 }
 
+pub fn challenge_2() -> String {
+    "foobar".to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -22,5 +28,10 @@ mod tests {
         let expected = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
         let result = challenge_1();
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_challenge_2() {
+
     }
 }
