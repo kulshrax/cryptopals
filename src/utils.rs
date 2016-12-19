@@ -39,11 +39,19 @@ static LETTER_FREQS: [f64; 26] = [
 ];
 
 /// XOR two byte strings, truncating the longer one if the sizes are different.
-pub fn xor(a: &[u8], b: &[u8]) -> Vec<u8> {
-    a.iter().zip(b.iter()).map(|(x, y)| x ^ y).collect()
+pub fn xor<'a, 'b, A, B>(a: A, b: B) -> Vec<u8>
+    where A: IntoIterator<Item = &'a u8>,
+          B: IntoIterator<Item = &'b u8>
+{
+    a.into_iter().zip(b.into_iter()).map(|(x, y)| *x ^ *y).collect()
 }
 
 /// Compute the dot product of two vectors.
 pub fn dot<T>(a: &[T], b: &[T]) -> T where T: Copy + Sum + Mul<Output = T> {
     a.iter().zip(b.iter()).map(|(x, y)| *x * *y).sum()
+}
+
+/// Score a text based on similarity to known English letter frequencies.
+pub fn score_text(text: &str) -> f64 {
+    return 1.0
 }
