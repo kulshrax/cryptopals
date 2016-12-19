@@ -16,7 +16,9 @@ pub fn challenge_1() -> String {
 }
 
 pub fn challenge_2() -> String {
-    "foobar".to_string()
+    let a = "1c0111001f010100061a024b53535009181c".from_hex().unwrap();
+    let b = "686974207468652062756c6c277320657965".from_hex().unwrap();
+    xor_bytes(&a, &b).to_hex()
 }
 
 #[cfg(test)]
@@ -32,6 +34,8 @@ mod tests {
 
     #[test]
     fn test_challenge_2() {
-
+        let expected = "746865206b696420646f6e277420706c6179";
+        let result = challenge_2();
+        assert_eq!(result, expected);
     }
 }
