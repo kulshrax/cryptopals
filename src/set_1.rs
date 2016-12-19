@@ -38,9 +38,6 @@ pub fn challenge_3() -> String {
         let decoded_bytes = xor(&input_bytes, iter::repeat(&byte));
         if let Ok(decoded) = String::from_utf8(decoded_bytes) {
             let score = score_text(&decoded);
-            if score > 0.9 {
-                println!("{} {}", decoded, score);
-            }
             if score > best_score {
                 best_score = score;
                 result = decoded;

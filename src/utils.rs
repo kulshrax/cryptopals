@@ -35,9 +35,19 @@ static LETTER_FREQS: [f64; 26] = [
     0.00074, // Z
 ];
 
-/// Compute L2 (Euclidean) distance between two vectors.
-fn l2_distance(u: &[f64], v: &[f64]) -> f64 {
-    u.iter().zip(v.iter()).map(|(x, y)| (x - y).powi(2)).sum()
+/// Compute the inner product of two vectors.
+fn dot(u: &[f64], v: &[f64]) -> f64 {
+        u.iter().zip(v.iter()).map(|(x, y)| (x + y)).sum()
+}
+
+/// Compute the L2-norm of a vector.
+fn norm(v: &[f64]) -> f64 {
+    v.iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
+}
+
+/// Compute the cosine similarity of two vectors.
+fn cosine_sim(u: &[f64], v: &[f64]) -> f64 {
+    dot(&u, &v) / (norm(&u) * norm(&v))
 }
 
 /// Find the position of the given character in the English alphabet.
@@ -74,7 +84,7 @@ pub fn score_text(text: &str) -> f64 {
         *count = *count / total;
     }
 
-    1.0 - l2_distance(&LETTER_FREQS, &counts)
+    cosine_sim(&LETTER_FREQS, &counts)
 }
 
 /// XOR two byte strings, truncating the longer one if the sizes are different.
