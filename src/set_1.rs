@@ -48,6 +48,32 @@ pub fn challenge_3() -> String {
     result
 }
 
+/// Detect single-character XOR.
+pub fn challenge_4() -> (usize, String) {
+    let input = include_str!("data/set_1/4.txt");
+
+    let mut result = String::new();
+    let mut best_score = f64::MIN;
+    let mut index = 0;
+
+    for (i, line) in input.lines().enumerate() {
+        let input_bytes = line.from_hex().unwrap();
+        for byte in 0..255u8 {
+            let decoded_bytes = xor(&input_bytes, iter::repeat(&byte));
+            if let Ok(decoded) = String::from_utf8(decoded_bytes) {
+                let score = score_text(&decoded);
+                if score > best_score {
+                    best_score = score;
+                    result = decoded;
+                    index = i;
+                }
+            }
+        }
+    }
+
+    (index, result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -71,5 +97,11 @@ mod tests {
         let expected = "Cooking MC's like a pound of bacon";
         let result = challenge_3();
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_challenge_4() {
+        let (i, result) = challenge_4();
+        println!("{:?} {:?}", i, result);
     }
 }

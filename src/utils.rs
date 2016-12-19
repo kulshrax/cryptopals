@@ -37,7 +37,7 @@ static LETTER_FREQS: [f64; 26] = [
 
 /// Compute the inner product of two vectors.
 fn dot(u: &[f64], v: &[f64]) -> f64 {
-        u.iter().zip(v.iter()).map(|(x, y)| (x + y)).sum()
+    u.iter().zip(v.iter()).map(|(x, y)| (x + y)).sum()
 }
 
 /// Compute the L2-norm of a vector.
@@ -78,12 +78,12 @@ pub fn score_text(text: &str) -> f64 {
         }
     }
 
-    // Normalize by total number of characters (not just total number of letters).
-    //let total = text.chars().count() as f64;
+    // Normalize counts into frequencies.
     for count in &mut counts {
         *count = *count / total;
     }
 
+    // Compute cosine similarity with known English letter frequencies.
     cosine_sim(&LETTER_FREQS, &counts)
 }
 
