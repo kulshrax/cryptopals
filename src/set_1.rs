@@ -1,10 +1,7 @@
 use std::f64;
-use std::iter;
-
 use rustc_serialize::base64::*;
 use rustc_serialize::hex::*;
-
-use text_utils::*;
+use byte_utils::*;
 
 /// Convert hex to base64.
 pub fn challenge_1() -> String {
@@ -26,25 +23,7 @@ pub fn challenge_2() -> String {
     xor(&a, &b).to_hex()
 }
 
-fn single_byte_brute_force(input: &str) -> (f64, String) {
-    let input_bytes = input.from_hex().unwrap();
 
-    let mut result = String::new();
-    let mut best_score = f64::MIN;
-
-    for byte in 0..255u8 {
-        let decoded_bytes = xor(&input_bytes, iter::repeat(&byte));
-        if let Ok(decoded) = String::from_utf8(decoded_bytes) {
-            let score = score_text(&decoded);
-            if score > best_score {
-                best_score = score;
-                result = decoded;
-            }
-        }
-    }
-
-    (best_score, result)
-}
 
 /// Single-byte XOR cipher.
 pub fn challenge_3() -> String {

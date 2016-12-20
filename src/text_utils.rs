@@ -76,11 +76,3 @@ pub fn score_text(text: &str) -> f64 {
     // No need to normalize the counts because cosine similarity takes care of this.
     cosine_sim(&LETTER_FREQS, &counts)
 }
-
-/// XOR two byte strings, truncating the longer one if the sizes are different.
-pub fn xor<'a, 'b, A, B>(a: A, b: B) -> Vec<u8>
-    where A: IntoIterator<Item = &'a u8>,
-          B: IntoIterator<Item = &'b u8>
-{
-    a.into_iter().zip(b.into_iter()).map(|(x, y)| *x ^ *y).collect()
-}
