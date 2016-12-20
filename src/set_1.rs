@@ -26,7 +26,7 @@ pub fn challenge_2() -> String {
 /// Single-byte XOR cipher.
 pub fn challenge_3() -> String {
     let input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
-    let (_, result) = single_byte_brute_force(input);
+    let (_, _, result) = single_byte_brute_force(input);
     result
 }
 
@@ -38,7 +38,7 @@ pub fn challenge_4() -> String {
     let mut best_score = f64::MIN;
 
     for line in input.lines() {
-        let (score, decoded) = single_byte_brute_force(line);
+        let (score, _, decoded) = single_byte_brute_force(line);
         if score > best_score {
             best_score = score;
             result = decoded;
@@ -58,6 +58,8 @@ pub fn challenge_5() -> String {
 
 /// Break repeating-key XOR.
 pub fn challenge_6() -> String {
+    let input = include_str!("data/6.txt");
+    let ciphertext = input.split('\n').collect::<Vec<_>>().concat().from_base64().unwrap();
     String::new()
 }
 
@@ -99,6 +101,13 @@ mod tests {
         let expected = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c\
                         2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b\
                         2027630c692b20283165286326302e27282f";
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_challenge_6() {
+        let result = challenge_6();
+        let expected = "";
         assert_eq!(result, expected);
     }
 }
