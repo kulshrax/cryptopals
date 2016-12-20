@@ -11,6 +11,11 @@ pub fn xor<'a, 'b, A, B>(a: A, b: B) -> Vec<u8>
     a.into_iter().zip(b.into_iter()).map(|(x, y)| *x ^ *y).collect()
 }
 
+/// Compute the bitwise Hamming distance between two byte arrays.
+pub fn hamming_dist(a: &[u8], b: &[u8]) -> u32 {
+    a.iter().zip(b.iter()).map(|(x, y)| (x ^ y).count_ones()).sum()
+}
+
 /// Brute force an English string that has been XOR'd with a single byte.
 pub fn single_byte_brute_force(input: &str) -> (f64, String) {
     let input_bytes = input.from_hex().unwrap();
