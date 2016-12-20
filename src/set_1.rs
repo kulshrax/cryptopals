@@ -4,7 +4,7 @@ use std::iter;
 use rustc_serialize::base64::*;
 use rustc_serialize::hex::*;
 
-use utils::*;
+use text_utils::*;
 
 /// Convert hex to base64.
 pub fn challenge_1() -> String {
@@ -26,9 +26,7 @@ pub fn challenge_2() -> String {
     xor(&a, &b).to_hex()
 }
 
-/// Single-byte XOR cipher.
-pub fn challenge_3() -> String {
-    let input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
+fn single_byte_brute_force(input: &str) -> (f64, String) {
     let input_bytes = input.from_hex().unwrap();
 
     let mut result = String::new();
@@ -45,33 +43,32 @@ pub fn challenge_3() -> String {
         }
     }
 
+    (best_score, result)
+}
+
+/// Single-byte XOR cipher.
+pub fn challenge_3() -> String {
+    let input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
+    let (_, result) = single_byte_brute_force(input);
     result
 }
 
 /// Detect single-character XOR.
-pub fn challenge_4() -> (usize, String) {
+pub fn challenge_4() -> String {
     let input = include_str!("data/set_1/4.txt");
 
     let mut result = String::new();
     let mut best_score = f64::MIN;
-    let mut index = 0;
 
-    for (i, line) in input.lines().enumerate() {
-        let input_bytes = line.from_hex().unwrap();
-        for byte in 0..255u8 {
-            let decoded_bytes = xor(&input_bytes, iter::repeat(&byte));
-            if let Ok(decoded) = String::from_utf8(decoded_bytes) {
-                let score = score_text(&decoded);
-                if score > best_score {
-                    best_score = score;
-                    result = decoded;
-                    index = i;
-                }
-            }
+    for line in input.lines() {
+        let (score, decoded) = single_byte_brute_force(line);
+        if score > best_score {
+            best_score = score;
+            result = decoded;
         }
     }
 
-    (index, result)
+    result
 }
 
 /// Implement repeating-key XOR.
@@ -109,7 +106,7 @@ mod tests {
 
     #[test]
     fn test_challenge_4() {
-        let expected = (0, "foobar".to_string());
+        let expected = "Now that the party is jumping\n";
         let result = challenge_4();
         assert_eq!(result, expected);
     }
