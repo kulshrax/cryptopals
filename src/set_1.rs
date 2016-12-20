@@ -11,7 +11,7 @@ pub fn challenge_1() -> String {
         char_set: CharacterSet::Standard,
         newline: Newline::LF,
         pad: false,
-        line_length: None
+        line_length: None,
     };
     input.from_hex().unwrap().to_base64(config)
 }
@@ -22,8 +22,6 @@ pub fn challenge_2() -> String {
     let b = "686974207468652062756c6c277320657965".from_hex().unwrap();
     xor(&a, &b).to_hex()
 }
-
-
 
 /// Single-byte XOR cipher.
 pub fn challenge_3() -> String {
@@ -98,9 +96,9 @@ mod tests {
     #[test]
     fn test_challenge_5() {
         let result = challenge_5();
-        let expected = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d\
-                        63343c2a26226324272765272a282b2f20430a652e2c652a31\
-                        24333a653e2b2027630c692b20283165286326302e27282f";
+        let expected = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c\
+                        2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b\
+                        2027630c692b20283165286326302e27282f";
         assert_eq!(result, expected);
     }
 }

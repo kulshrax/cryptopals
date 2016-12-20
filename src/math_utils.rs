@@ -1,24 +1,24 @@
 /// Compute the inner product of two vectors.
 pub fn dot(u: &[f64], v: &[f64]) -> f64 {
     u.iter()
-     .zip(v.iter())
-     .map(|(x, y)| (x * y))
-     .sum()
+        .zip(v.iter())
+        .map(|(x, y)| (x * y))
+        .sum()
 }
 
 /// Compute the L1-norm of a vector.
 pub fn l1_norm(v: &[f64]) -> f64 {
     v.iter()
-     .map(|x| x.abs())
-     .sum()
+        .map(|x| x.abs())
+        .sum()
 }
 
 /// Compute the L2-norm of a vector.
 pub fn l2_norm(v: &[f64]) -> f64 {
     v.iter()
-     .map(|x| x.powi(2))
-     .sum::<f64>()
-     .sqrt()
+        .map(|x| x.powi(2))
+        .sum::<f64>()
+        .sqrt()
 }
 
 /// Normalize a vector using the L1 norm.
@@ -36,18 +36,18 @@ pub fn l2_normalize(v: &[f64]) -> Vec<f64> {
 /// Compute the L2 (Manhattan) distance between two vectors.
 pub fn l1_dist(u: &[f64], v: &[f64]) -> f64 {
     u.iter()
-     .zip(v.iter())
-     .map(|(x, y)| (x - y).abs())
-     .sum()
+        .zip(v.iter())
+        .map(|(x, y)| (x - y).abs())
+        .sum()
 }
 
 /// Compute the L2 (Euclidean) distance between two vectors.
 pub fn l2_dist(u: &[f64], v: &[f64]) -> f64 {
     u.iter()
-     .zip(v.iter())
-     .map(|(x, y)| (x - y).powi(2))
-     .sum::<f64>()
-     .sqrt()
+        .zip(v.iter())
+        .map(|(x, y)| (x - y).powi(2))
+        .sum::<f64>()
+        .sqrt()
 }
 
 /// Compute the normalized L1 similarity between two vectors.
