@@ -37,17 +37,69 @@ static LETTER_FREQS: [f64; 26] = [
 
 /// Compute the inner product of two vectors.
 fn dot(u: &[f64], v: &[f64]) -> f64 {
-    u.iter().zip(v.iter()).map(|(x, y)| (x + y)).sum()
+    u.iter()
+     .zip(v.iter())
+     .map(|(x, y)| (x * y))
+     .sum()
+}
+
+/// Compute the L1-norm of a vector.
+fn l1_norm(v: &[f64]) -> f64 {
+    v.iter()
+     .map(|x| x.abs())
+     .sum()
 }
 
 /// Compute the L2-norm of a vector.
-fn norm(v: &[f64]) -> f64 {
-    v.iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
+fn l2_norm(v: &[f64]) -> f64 {
+    v.iter()
+     .map(|x| x.powi(2))
+     .sum::<f64>()
+     .sqrt()
+}
+
+/// Normalize a vector using the L1 norm.
+fn l1_normalize(v: &[f64]) -> Vec<f64> {
+    let v_norm = l1_norm(&v);
+    v.iter().map(|x| x / v_norm).collect()
+}
+
+/// Normalize a vector using the L2 norm.
+fn l2_normalize(v: &[f64]) -> Vec<f64> {
+    let v_norm = l2_norm(&v);
+    v.iter().map(|x| x / v_norm).collect()
+}
+
+/// Compute the L2 (Manhattan) distance between two vectors.
+fn l1_dist(u: &[f64], v: &[f64]) -> f64 {
+    u.iter()
+     .zip(v.iter())
+     .map(|(x, y)| (x - y).abs())
+     .sum()
+}
+
+/// Compute the L2 (Euclidean) distance between two vectors.
+fn l2_dist(u: &[f64], v: &[f64]) -> f64 {
+    u.iter()
+     .zip(v.iter())
+     .map(|(x, y)| (x - y).powi(2))
+     .sum::<f64>()
+     .sqrt()
+}
+
+/// Compute the normalized L1 similarity between two vectors.
+fn l1_sim(u: &[f64], v: &[f64]) -> f64 {
+    1.0 - l1_dist(&l1_normalize(&u), &l1_normalize(&v))
+}
+
+/// Compute the normalized L2 similarity between two vectors.
+fn l2_sim(u: &[f64], v: &[f64]) -> f64 {
+    1.0 - l2_dist(&l2_normalize(&u), &l2_normalize(&v))
 }
 
 /// Compute the cosine similarity of two vectors.
 fn cosine_sim(u: &[f64], v: &[f64]) -> f64 {
-    dot(&u, &v) / (norm(&u) * norm(&v))
+    dot(&u, &v) / (l2_norm(&u) * l2_norm(&v))
 }
 
 /// Find the position of the given character in the English alphabet.
@@ -66,24 +118,16 @@ fn alphabet_position(c: char) -> Option<usize> {
 
 /// Score a text based on similarity to known English letter frequencies.
 pub fn score_text(text: &str) -> f64 {
-    let mut counts = [0.0f64; 26];
-    let mut total = 0.0f64;
-
     // Count the occurrence of letters in the input text.
+    let mut counts = [0.0f64; 26];
     for c in text.chars() {
         if let Some(i) = alphabet_position(c) {
             let count = &mut counts[i];
             *count += 1.0;
-            total += 1.0;
         }
     }
 
-    // Normalize counts into frequencies.
-    for count in &mut counts {
-        *count = *count / total;
-    }
-
-    // Compute cosine similarity with known English letter frequencies.
+    // Compute vector similarity with known English letter frequencies.
     cosine_sim(&LETTER_FREQS, &counts)
 }
 

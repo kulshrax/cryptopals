@@ -109,8 +109,9 @@ mod tests {
 
     #[test]
     fn test_challenge_4() {
-        let (i, result) = challenge_4();
-        println!("{:?} {:?}", i, result);
+        let expected = (0, "foobar".to_string());
+        let result = challenge_4();
+        assert_eq!(result, expected);
     }
 
     #[test]
