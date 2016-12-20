@@ -61,19 +61,19 @@ pub fn score_text(text: &str) -> f64 {
         if c == ' ' {
             space = true;
         } else if let Some(i) = alphabet_position(c) {
-            let count = &mut counts[i];
-            *count += 1.0;
+            *(&mut counts[i]) += 1.0;
         }
     }
 
-    // Crude heuristic: if there's no whitespace, this probably isn't English text.
-    // Using this because I couldn't find a character frequency table that included
-    // non-alphabetic characters.
+    // Crude heuristic: if there are no spaces, this probably isn't English text.
+    // We need this because we don't have non-alphabetic character frequencies, but
+    // we get incorrect results if we just ignore whitespace entirely.
     if !space {
         return 0.0
     }
 
-    // Compute vector similarity with known English letter frequencies.
+    // Compute similarity against known English letter frequencies.
+    // No need to normalize the counts because cosine similarity takes care of this.
     cosine_sim(&LETTER_FREQS, &counts)
 }
 
