@@ -44,13 +44,17 @@ pub fn hamming_dist(a: &[u8], b: &[u8]) -> u32 {
 fn get_keysizes(ciphertext: &[u8]) -> Vec<usize> {
     let mut sizes = Vec::new();
 
+    // Check key sizes 2 to 40 bytes; assume text is at least 80 bytes long.
     for size in 2..40usize {
         let one = &ciphertext[0 .. size];
         let two = &ciphertext[size .. size * 2];
+
+        // Normalize Hamming distance by key size; requires casting to floats.
         let dist = hamming_dist(one, two) as f64 / size as f64;
         sizes.push((dist, size));
     }
 
+    // Floats are not totally ordered, so we need to use a partially ordered sort.
     sizes.sort_by(|&(a, _), &(b, _)| a.partial_cmp(&b).unwrap());
     sizes.into_iter().map(|(_, size)| size).collect()
 }
