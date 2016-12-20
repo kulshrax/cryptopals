@@ -55,7 +55,7 @@ pub fn challenge_3() -> String {
 
 /// Detect single-character XOR.
 pub fn challenge_4() -> String {
-    let input = include_str!("data/set_1/4.txt");
+    let input = include_str!("data/4.txt");
 
     let mut result = String::new();
     let mut best_score = f64::MIN;
@@ -77,6 +77,11 @@ pub fn challenge_5() -> String {
     let text = &b"Burning 'em, if you ain't quick and nimble\n\
                   I go crazy when I hear a cymbal"[..];
     xor(text, pad).to_hex()
+}
+
+/// Break repeating-key XOR.
+pub fn challenge_6() -> String {
+    String::new()
 }
 
 #[cfg(test)]
