@@ -27,7 +27,8 @@ pub fn challenge_2() -> String {
 /// Single-byte XOR cipher.
 pub fn challenge_3() -> String {
     let input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
-    let (_, _, result) = single_byte_brute_force(input);
+    let input_bytes = input.from_hex().unwrap();
+    let (_, _, result) = single_byte_brute_force(&input_bytes);
     result
 }
 
@@ -39,7 +40,8 @@ pub fn challenge_4() -> String {
     let mut best_score = f64::MIN;
 
     for line in input.lines() {
-        let (score, _, decoded) = single_byte_brute_force(line);
+        let line_bytes = line.from_hex().unwrap();
+        let (score, _, decoded) = single_byte_brute_force(&line_bytes);
         if score > best_score {
             best_score = score;
             result = decoded;
@@ -61,7 +63,39 @@ pub fn challenge_5() -> String {
 pub fn challenge_6() -> String {
     let input = include_str!("data/6.txt").to_string().replace("\n", "");
     let ciphertext = input.from_base64().unwrap();
-    String::new()
+
+    let keysizes = get_keysizes(&ciphertext);
+
+    // Try the smallest 3 keysizes. Can be adjusted to try more if needed.
+    let keys = (&keysizes[..3]).iter().map(|size| {
+
+        // Make transposed vector of vectors of bytes. The first vector contains
+        // the first byte from each chunk, the second contains the second byte
+        // from each chunk, etc.
+        let mut transposed = (0..*size).map(|_| Vec::new()).collect::<Vec<Vec<u8>>>();
+        for chunk in ciphertext.chunks(*size) {
+            for (byte, vector) in chunk.iter().zip(transposed.iter_mut()) {
+                vector.push(*byte);
+            }
+        }
+
+        // Determine the most likely key one byte at a time by using a similar
+        // brute force search for English-like letter frequencies over the vector
+        // for each byte position. For the sake of this challenge, assume the key
+        // can be represented as printable ASCII characters so we can easily
+        // check the result.
+        transposed.iter().map(|bytes| {
+            let (_, byte, _) = single_byte_brute_force(bytes);
+            byte
+        }).collect::<Vec<_>>()
+    }).collect::<Vec<_>>();
+
+    panic!("{:?}", keys);
+
+    // XOR the ciphertext with the found key, and convert the result into a string.
+    let pad = keys[2].iter().cycle();
+    let decoded = xor(&ciphertext, pad);
+    String::from_utf8_lossy(&decoded).into_owned()
 }
 
 /// AES in ECB mode.
@@ -72,8 +106,8 @@ pub fn challenge_7() -> String {
     let cipher = Cipher::aes_128_ecb();
     let key = &b"YELLOW SUBMARINE"[..];
 
-    let plaintext = decrypt(cipher, key, None, &ciphertext).unwrap();
-    String::from_utf8_lossy(&plaintext).into_owned()
+    let decoded = decrypt(cipher, key, None, &ciphertext).unwrap();
+    String::from_utf8_lossy(&decoded).into_owned()
 }
 
 /// Detect AES in ECB mode.

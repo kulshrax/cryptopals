@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::f64;
 use std::iter;
-use rustc_serialize::hex::*;
 use utils::text::score_text;
 
 /// XOR two byte strings, truncating the longer one if the sizes are different.
@@ -13,15 +12,13 @@ pub fn xor<'a, 'b, A, B>(a: A, b: B) -> Vec<u8>
 }
 
 /// Brute force an English string that has been XOR'd with a single byte.
-pub fn single_byte_brute_force(input: &str) -> (f64, u8, String) {
-    let input_bytes = input.from_hex().unwrap();
-
+pub fn single_byte_brute_force(ciphertext: &[u8]) -> (f64, u8, String) {
     let mut result = String::new();
     let mut best_score = f64::MIN;
     let mut key = 0u8;
 
     for byte in 0..255u8 {
-        let decoded_bytes = xor(&input_bytes, iter::repeat(&byte));
+        let decoded_bytes = xor(ciphertext, iter::repeat(&byte));
         if let Ok(decoded) = String::from_utf8(decoded_bytes) {
             let score = score_text(&decoded);
             if score > best_score {
@@ -41,7 +38,9 @@ pub fn hamming_dist(a: &[u8], b: &[u8]) -> u32 {
 }
 
 /// Determine the most likely key sizes for a repeating-key XOR encoded ciphertext.
-/// Return the potential sizes in order of likelihood.
+/// Returns a vector of potential key sizes, sorted in ascending order by the
+/// normalized Hamming distance between the first two chunks of that size in the
+/// ciphertext.
 pub fn get_keysizes(ciphertext: &[u8]) -> Vec<usize> {
     let mut sizes = Vec::new();
 
@@ -60,8 +59,8 @@ pub fn get_keysizes(ciphertext: &[u8]) -> Vec<usize> {
     sizes.into_iter().map(|(_, size)| size).collect()
 }
 
-// Attempt to detect the use of an ECB mode block cipher by looking for repeated blocks
-// in the given byte string. Returns the maximum number of repetitions found for any block.
+/// Attempt to detect the use of an ECB mode block cipher by looking for repeated blocks
+/// in the given byte string. Returns the maximum number of repetitions found for any block.
 pub fn detect_ecb(bytes: &[u8], block_size: usize) -> i32 {
     let mut counts = HashMap::new();
 
