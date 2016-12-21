@@ -64,19 +64,19 @@ pub fn challenge_6() -> String {
     String::new()
 }
 
-// AES in ECB mode.
+/// AES in ECB mode.
 pub fn challenge_7() -> String {
     let input = include_str!("data/7.txt").to_string().replace("\n", "");
     let ciphertext = input.from_base64().unwrap();
+    
     let cipher = Cipher::aes_128_ecb();
     let key = &b"YELLOW SUBMARINE"[..];
+
     let plaintext = decrypt(cipher, key, None, &ciphertext).unwrap();
-    let mut f = File::create("foo.txt").unwrap();
-    f.write(&plaintext);
     String::from_utf8_lossy(&plaintext).into_owned()
 }
 
-// Detect AES in ECB mode.
+/// Detect AES in ECB mode.
 pub fn challenge_8() -> String {
     String::new()
 }
