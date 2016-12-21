@@ -3,8 +3,6 @@ use rustc_serialize::base64::*;
 use rustc_serialize::hex::*;
 use openssl::symm::{Cipher, decrypt};
 use byte_utils::*;
-use std::fs::File;
-use std::io::prelude::*;
 
 /// Convert hex to base64.
 pub fn challenge_1() -> String {
