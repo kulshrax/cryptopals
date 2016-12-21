@@ -4,4 +4,6 @@ version = "0.1.0"
 authors = ["Arun Kulshreshtha <kulshrax@gmail.com>"]
 
 [dependencies]
+itertools = "0.5.7"
+openssl = "0.9.3"
 rustc-serialize = "0.3"

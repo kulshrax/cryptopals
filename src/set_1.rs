@@ -1,7 +1,10 @@
 use std::f64;
 use rustc_serialize::base64::*;
 use rustc_serialize::hex::*;
+use openssl::symm::{Cipher, decrypt};
 use byte_utils::*;
+use std::fs::File;
+use std::io::prelude::*;
 
 /// Convert hex to base64.
 pub fn challenge_1() -> String {
@@ -58,9 +61,20 @@ pub fn challenge_5() -> String {
 
 /// Break repeating-key XOR.
 pub fn challenge_6() -> String {
-    let input = include_str!("data/6.txt");
-    let ciphertext = input.split('\n').collect::<Vec<_>>().concat().from_base64().unwrap();
+    let input = include_str!("data/6.txt").to_string().replace("\n", "");
+    let ciphertext = input.from_base64().unwrap();
     String::new()
+}
+
+pub fn challenge_7() -> String {
+    let input = include_str!("data/7.txt").to_string().replace("\n", "");
+    let ciphertext = input.from_base64().unwrap();
+    let cipher = Cipher::aes_128_ecb();
+    let key = &b"YELLOW SUBMARINE"[..];
+    let plaintext = decrypt(cipher, key, None, &ciphertext).unwrap();
+    let mut f = File::create("foo.txt").unwrap();
+    f.write(&plaintext);
+    String::from_utf8_lossy(&plaintext).into_owned()
 }
 
 #[cfg(test)]
@@ -108,6 +122,13 @@ mod tests {
     fn test_challenge_6() {
         let result = challenge_6();
         let expected = "";
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_challenge_7() {
+        let result = challenge_7();
+        let expected = include_str!("data/7_decrypted.txt");
         assert_eq!(result, expected);
     }
 }

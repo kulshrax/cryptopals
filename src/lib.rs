@@ -1,3 +1,5 @@
+extern crate itertools;
+extern crate openssl;
 extern crate rustc_serialize;
 
 pub mod byte_utils;
