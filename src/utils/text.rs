@@ -1,4 +1,4 @@
-use math_utils::cosine_sim;
+use utils::math::cosine_sim;
 
 /// The alphabet stored as a static array for ease of access.
 static ALPHABET: [char; 26] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',

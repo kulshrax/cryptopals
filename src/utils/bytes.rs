@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::f64;
 use std::iter;
 use rustc_serialize::hex::*;
-use text_utils::score_text;
+use utils::text::score_text;
 
 /// XOR two byte strings, truncating the longer one if the sizes are different.
 pub fn xor<'a, 'b, A, B>(a: A, b: B) -> Vec<u8>
