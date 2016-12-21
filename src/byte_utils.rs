@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::f64;
 use std::iter;
 use rustc_serialize::hex::*;
@@ -41,7 +42,7 @@ pub fn hamming_dist(a: &[u8], b: &[u8]) -> u32 {
 
 /// Determine the most likely key sizes for a repeating-key XOR encoded ciphertext.
 /// Return the potential sizes in order of likelihood.
-fn get_keysizes(ciphertext: &[u8]) -> Vec<usize> {
+pub fn get_keysizes(ciphertext: &[u8]) -> Vec<usize> {
     let mut sizes = Vec::new();
 
     // Check key sizes 2 to 40 bytes; assume text is at least 80 bytes long.
@@ -57,4 +58,17 @@ fn get_keysizes(ciphertext: &[u8]) -> Vec<usize> {
     // Floats are not totally ordered, so we need to use a partially ordered sort.
     sizes.sort_by(|&(a, _), &(b, _)| a.partial_cmp(&b).unwrap());
     sizes.into_iter().map(|(_, size)| size).collect()
+}
+
+// Attempt to detect the use of an ECB mode block cipher by looking for repeated blocks
+// in the given byte string. Returns the maximum number of repetitions found for any block.
+pub fn detect_ecb(bytes: &[u8], block_size: usize) -> i32 {
+    let mut counts = HashMap::new();
+
+    for chunk in bytes.chunks(block_size) {
+        let count = counts.entry(chunk).or_insert(0i32);
+        *count += 1;
+    }
+
+    counts.values().cloned().max().unwrap_or(0)
 }

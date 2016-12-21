@@ -68,7 +68,7 @@ pub fn challenge_6() -> String {
 pub fn challenge_7() -> String {
     let input = include_str!("data/7.txt").to_string().replace("\n", "");
     let ciphertext = input.from_base64().unwrap();
-    
+
     let cipher = Cipher::aes_128_ecb();
     let key = &b"YELLOW SUBMARINE"[..];
 
@@ -77,8 +77,27 @@ pub fn challenge_7() -> String {
 }
 
 /// Detect AES in ECB mode.
-pub fn challenge_8() -> String {
-    String::new()
+pub fn challenge_8() -> (usize, String) {
+    let input = include_str!("data/8.txt");
+
+    let mut index = 0;
+    let mut result = String::new();
+    let mut max = 0;
+
+    // Find the line that has the most repeated 16-byte chunks. This is likely
+    // indicative of an ECB-encoded plaintext, assuming the plaintext itself has
+    // some repeated 16-byte chunks. Will not work for arbitrary plaintexts.
+    for (i, line) in input.lines().enumerate() {
+        let bytes = line.from_hex().unwrap();
+        let count = detect_ecb(&bytes, 16);
+        if count > max {
+            max = count;
+            index = i;
+            result = line.to_string();
+        }
+    }
+
+    (index, result)
 }
 
 #[cfg(test)]
@@ -138,8 +157,13 @@ mod tests {
 
     #[test]
     fn text_challenge_8() {
-        let result = challenge_7();
-        let expected = "";
+        let (index, result) = challenge_8();
+        let expected = "d880619740a8a19b7840a8a31c810a3d08649af70dc06f4fd5d2d69c744cd283e\
+                        2dd052f6b641dbf9d11b0348542bb5708649af70dc06f4fd5d2d69c744cd28394\
+                        75c9dfdbc1d46597949d9c7e82bf5a08649af70dc06f4fd5d2d69c744cd28397a\
+                        93eab8d6aecd566489154789a6b0308649af70dc06f4fd5d2d69c744cd283d403\
+                        180c98c8f6db1f2a3f9c4040deb0ab51b29933f2c123c58386b06fba186a";
         assert_eq!(result, expected);
+        assert_eq!(index, 132);
     }
 }
