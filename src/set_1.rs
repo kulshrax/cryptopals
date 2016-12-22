@@ -88,11 +88,9 @@ pub fn challenge_6() -> (String, String) {
 
     // XOR the ciphertext with the found key, and convert the result into a string.
     let pad = keys[0].iter().cycle();
-    let decoded_bytes = xor(&ciphertext, pad);
+    let decoded = xor(&ciphertext, pad);
 
-    let key = String::from_utf8_lossy(&keys[0]).into_owned();
-    let decoded = String::from_utf8_lossy(&decoded_bytes).into_owned();
-    (key, decoded)
+    (to_string(&keys[0]), to_string(&decoded))
 }
 
 /// AES in ECB mode.
@@ -104,7 +102,7 @@ pub fn challenge_7() -> String {
     let key = &b"YELLOW SUBMARINE"[..];
 
     let decoded = decrypt(cipher, key, None, &ciphertext).unwrap();
-    String::from_utf8_lossy(&decoded).into_owned()
+    to_string(&decoded)
 }
 
 /// Detect AES in ECB mode.
