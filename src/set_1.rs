@@ -4,7 +4,7 @@ use rustc_serialize::base64::*;
 use rustc_serialize::hex::*;
 use openssl::symm::{Cipher, decrypt};
 
-use utils::bytes::*;
+use utils::bytes;
 
 /// Convert hex to base64.
 pub fn challenge_1() -> String {
@@ -23,14 +23,14 @@ pub fn challenge_1() -> String {
 pub fn challenge_2() -> String {
     let a = "1c0111001f010100061a024b53535009181c".from_hex().unwrap();
     let b = "686974207468652062756c6c277320657965".from_hex().unwrap();
-    xor(&a, &b).to_hex()
+    bytes::xor(&a, &b).to_hex()
 }
 
 /// Single-byte XOR cipher.
 pub fn challenge_3() -> String {
     let input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
     let input_bytes = input.from_hex().unwrap();
-    let (_, decoded, _) = single_byte_brute_force(&input_bytes);
+    let (_, decoded, _) = bytes::single_byte_brute_force(&input_bytes);
     decoded
 }
 
@@ -43,7 +43,7 @@ pub fn challenge_4() -> String {
 
     for line in input.lines() {
         let line_bytes = line.from_hex().unwrap();
-        let (score, decoded, _) = single_byte_brute_force(&line_bytes);
+        let (score, decoded, _) = bytes::single_byte_brute_force(&line_bytes);
         if score > best_score {
             best_score = score;
             result = decoded;
@@ -58,7 +58,7 @@ pub fn challenge_5() -> String {
     let pad = b"ICE".iter().cycle();
     let text = &b"Burning 'em, if you ain't quick and nimble\n\
                   I go crazy when I hear a cymbal"[..];
-    xor(text, pad).to_hex()
+    bytes::xor(text, pad).to_hex()
 }
 
 /// Break repeating-key XOR.
@@ -67,7 +67,7 @@ pub fn challenge_6() -> (String, String) {
     let ciphertext = input.from_base64().unwrap();
 
     // Get most likely key sizes.
-    let keysizes = get_keysizes(&ciphertext, 2..41, 3);
+    let keysizes = bytes::get_keysizes(&ciphertext, 2..41, 3);
 
     // Use the same brute force technique for breaking single-byte XOR encryption
     // to determine the most likely key for each given key size.
@@ -77,20 +77,20 @@ pub fn challenge_6() -> (String, String) {
         // vectors of bytes, where the nth vector contains all bytes in the ciphertext
         // that were XOR'd with the nth byte of the key. Allows us to generalize
         // the single-byte brute force technique to a multi-byte repeating key.
-        let transposed = transpose(ciphertext.chunks(*size));
+        let transposed = bytes::transpose(ciphertext.chunks(*size));
 
         // Find the most likely key byte for each group of transposed bytes.
         transposed.iter().map(|bytes| {
-            let (_, _, key_byte) = single_byte_brute_force(bytes);
+            let (_, _, key_byte) = bytes::single_byte_brute_force(bytes);
             key_byte
         }).collect::<Vec<u8>>()
     }).collect::<Vec<_>>();
 
     // XOR the ciphertext with the found key, and convert the result into a string.
     let pad = keys[0].iter().cycle();
-    let decoded = xor(&ciphertext, pad);
+    let decoded = bytes::xor(&ciphertext, pad);
 
-    (to_string(&keys[0]), to_string(&decoded))
+    (bytes::to_string(&keys[0]), bytes::to_string(&decoded))
 }
 
 /// AES in ECB mode.
@@ -102,7 +102,7 @@ pub fn challenge_7() -> String {
     let key = &b"YELLOW SUBMARINE"[..];
 
     let decoded = decrypt(cipher, key, None, &ciphertext).unwrap();
-    to_string(&decoded)
+    bytes::to_string(&decoded)
 }
 
 /// Detect AES in ECB mode.
@@ -118,7 +118,7 @@ pub fn challenge_8() -> (usize, String) {
     // some repeated 16-byte chunks. Will not work for arbitrary plaintexts.
     for (i, line) in input.lines().enumerate() {
         let bytes = line.from_hex().unwrap();
-        let count = detect_ecb(&bytes, 16);
+        let count = bytes::detect_ecb(&bytes, 16);
         if count > max {
             max = count;
             index = i;
