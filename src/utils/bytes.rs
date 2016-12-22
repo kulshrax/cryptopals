@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::f64;
 use std::iter;
+use itertools::Itertools;
 use utils::text::score_text;
 
 /// XOR two byte strings, truncating the longer one if the sizes are different.
@@ -39,19 +40,27 @@ pub fn hamming_dist(a: &[u8], b: &[u8]) -> u32 {
 
 /// Determine the most likely key sizes for a repeating-key XOR encoded ciphertext.
 /// Returns a vector of potential key sizes, sorted in ascending order by the
-/// normalized Hamming distance between the first two chunks of that size in the
-/// ciphertext.
+/// mean normalized Hamming distance between chunks of that size in the ciphertext.
 pub fn get_keysizes(ciphertext: &[u8]) -> Vec<usize> {
     let mut sizes = Vec::new();
 
-    // Check key sizes 2 to 40 bytes; assume text is at least 80 bytes long.
-    for size in 2..40usize {
-        let one = &ciphertext[0 .. size];
-        let two = &ciphertext[size .. size * 2];
+    // Check key sizes 2 to 40 bytes.
+    for size in 2..41 {
+        // Maximum number of chunks to test. Overall space/time usage is varies factorially
+        // with this parameter, so large values may cause this function to take a long time.
+        let num_chunks = 4;
 
-        // Normalize Hamming distance by key size; requires casting to floats.
-        let dist = hamming_dist(one, two) as f64 / size as f64;
-        sizes.push((dist, size));
+        // Get Hamming distances of pairs of chunks of the given size.
+        let dists = ciphertext
+            .chunks(size)
+            .take(num_chunks)
+            .combinations(2)
+            .map(|pair| {
+                hamming_dist(pair[0], pair[1]) as f64 / size as f64
+            }).collect::<Vec<f64>>();
+
+        let avg = dists.iter().sum::<f64>() / dists.len() as f64;
+        sizes.push((avg, size));
     }
 
     // Floats are not totally ordered, so we need to use a partially ordered sort.
@@ -71,3 +80,18 @@ pub fn detect_ecb(bytes: &[u8], block_size: usize) -> i32 {
 
     counts.values().cloned().max().unwrap_or(0)
 }
+
+// Transpose an iterable of byte strings into a vector of vectors of bytes.
+// The nth vector will contain the nth byte of each string in order.
+// pub fn transpose<T>(iter: T) -> Vec<Vec<u8>>
+//     where T: IntoIterator<Item = &[u8]>
+// {
+//     let bytes = iter.collect();
+//     let mut transposed = .map(|_| Vec::new()).collect::<Vec<Vec<u8>>>();
+//     for chunk in ciphertext.chunks(*size) {
+//         for (byte, vector) in chunk.iter().zip(transposed.iter_mut()) {
+//             vector.push(*byte);
+//         }
+//     }
+//     transposed
+// }

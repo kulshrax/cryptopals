@@ -25,7 +25,7 @@ pub fn l2_normalize(v: &[f64]) -> Vec<f64> {
     v.iter().map(|x| x / v_norm).collect()
 }
 
-/// Compute the L2 (Manhattan) distance between two vectors.
+/// Compute the L1 (Manhattan) distance between two vectors.
 pub fn l1_dist(u: &[f64], v: &[f64]) -> f64 {
     u.iter().zip(v.iter()).map(|(x, y)| (x - y).abs()).sum()
 }

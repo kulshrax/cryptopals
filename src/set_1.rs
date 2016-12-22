@@ -90,7 +90,7 @@ pub fn challenge_6() -> String {
         }).collect::<Vec<_>>()
     }).collect::<Vec<_>>();
 
-    panic!("{:?}", keys);
+    panic!("{:?}", keysizes);
 
     // XOR the ciphertext with the found key, and convert the result into a string.
     let pad = keys[2].iter().cycle();
