@@ -1,7 +1,9 @@
 use std::f64;
+
 use rustc_serialize::base64::*;
 use rustc_serialize::hex::*;
 use openssl::symm::{Cipher, decrypt};
+
 use utils::bytes::*;
 
 /// Convert hex to base64.
@@ -28,8 +30,8 @@ pub fn challenge_2() -> String {
 pub fn challenge_3() -> String {
     let input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
     let input_bytes = input.from_hex().unwrap();
-    let (_, _, result) = single_byte_brute_force(&input_bytes);
-    result
+    let (_, decoded, _) = single_byte_brute_force(&input_bytes);
+    decoded
 }
 
 /// Detect single-character XOR.
@@ -41,7 +43,7 @@ pub fn challenge_4() -> String {
 
     for line in input.lines() {
         let line_bytes = line.from_hex().unwrap();
-        let (score, _, decoded) = single_byte_brute_force(&line_bytes);
+        let (score, decoded, _) = single_byte_brute_force(&line_bytes);
         if score > best_score {
             best_score = score;
             result = decoded;
@@ -60,42 +62,37 @@ pub fn challenge_5() -> String {
 }
 
 /// Break repeating-key XOR.
-pub fn challenge_6() -> String {
+pub fn challenge_6() -> (String, String) {
     let input = include_str!("data/6.txt").to_string().replace("\n", "");
     let ciphertext = input.from_base64().unwrap();
 
-    let keysizes = get_keysizes(&ciphertext);
+    // Get most likely key sizes.
+    let keysizes = get_keysizes(&ciphertext, 2..41, 3);
 
-    // Try the smallest 3 keysizes. Can be adjusted to try more if needed.
-    let keys = (&keysizes[..3]).iter().map(|size| {
+    // Use the same brute force technique for breaking single-byte XOR encryption
+    // to determine the most likely key for each given key size.
+    let keys = keysizes.iter().map(|size| {
 
-        // Make transposed vector of vectors of bytes. The first vector contains
-        // the first byte from each chunk, the second contains the second byte
-        // from each chunk, etc.
-        let mut transposed = (0..*size).map(|_| Vec::new()).collect::<Vec<Vec<u8>>>();
-        for chunk in ciphertext.chunks(*size) {
-            for (byte, vector) in chunk.iter().zip(transposed.iter_mut()) {
-                vector.push(*byte);
-            }
-        }
+        // Break cipher text into key sized chunks and transpose them into a vector of
+        // vectors of bytes, where the nth vector contains all bytes in the ciphertext
+        // that were XOR'd with the nth byte of the key. Allows us to generalize
+        // the single-byte brute force technique to a multi-byte repeating key.
+        let transposed = transpose(ciphertext.chunks(*size));
 
-        // Determine the most likely key one byte at a time by using a similar
-        // brute force search for English-like letter frequencies over the vector
-        // for each byte position. For the sake of this challenge, assume the key
-        // can be represented as printable ASCII characters so we can easily
-        // check the result.
+        // Find the most likely key byte for each group of transposed bytes.
         transposed.iter().map(|bytes| {
-            let (_, byte, _) = single_byte_brute_force(bytes);
-            byte
-        }).collect::<Vec<_>>()
+            let (_, _, key_byte) = single_byte_brute_force(bytes);
+            key_byte
+        }).collect::<Vec<u8>>()
     }).collect::<Vec<_>>();
 
-    panic!("{:?}", keysizes);
-
     // XOR the ciphertext with the found key, and convert the result into a string.
-    let pad = keys[2].iter().cycle();
-    let decoded = xor(&ciphertext, pad);
-    String::from_utf8_lossy(&decoded).into_owned()
+    let pad = keys[0].iter().cycle();
+    let decoded_bytes = xor(&ciphertext, pad);
+
+    let key = String::from_utf8_lossy(&keys[0]).into_owned();
+    let decoded = String::from_utf8_lossy(&decoded_bytes).into_owned();
+    (key, decoded)
 }
 
 /// AES in ECB mode.
@@ -177,15 +174,16 @@ mod tests {
 
     #[test]
     fn test_challenge_6() {
-        let result = challenge_6();
-        let expected = "";
+        let (key, result) = challenge_6();
+        let expected = include_str!("data/play_that_funky_music.txt");
         assert_eq!(result, expected);
+        assert_eq!(key, "Terminator X: Bring the noise");
     }
 
     #[test]
     fn test_challenge_7() {
         let result = challenge_7();
-        let expected = include_str!("data/7_decrypted.txt");
+        let expected = include_str!("data/play_that_funky_music.txt");
         assert_eq!(result, expected);
     }
 
