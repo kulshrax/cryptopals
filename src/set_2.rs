@@ -1,9 +1,9 @@
 use utils::bytes;
 
-/// Implement PKCS#7 padding
+/// Implement PKCS#7 padding.
 pub fn challenge_9() -> String {
     let input = &b"YELLOW SUBMARINE"[..];
-    bytes::to_string(&bytes::pad(input, 20))
+    bytes::to_string(&bytes::pad(input, 13).unwrap())
 }
 
 #[cfg(test)]

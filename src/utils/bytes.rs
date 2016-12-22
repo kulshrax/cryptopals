@@ -134,20 +134,15 @@ pub fn to_string<'a, T>(bytes: T) -> String
 /// Pad the given iterable of bytes to the given length using PKCS#7 padding.
 /// Padded length cannot be less than the original length, and can be at most
 /// 255 bytes greater than the original length.
-pub fn pad<'a, T>(bytes: T, length: usize) -> Vec<u8>
+pub fn pad<'a, T>(bytes: T, length: usize) -> Result<Vec<u8>, &'static str>
     where T: IntoIterator<Item = &'a u8>
 {
     let vec = bytes.into_iter().cloned().collect::<Vec<u8>>();
-
-    // Guard against underflow and truncation for the sake of security.
     match length.checked_sub(vec.len()) {
         Some(pad) if pad < 256 => {
-            vec.into_iter()
-                .chain(iter::repeat(pad as u8))
-                .take(length)
-                .collect()
+            Ok(vec.into_iter().chain(iter::repeat(pad as u8)).take(length).collect())
         },
-        Some(_) => panic!("Padding length exceeds 255 bytes."),
-        None => panic!("Padded size less than original size."),
+        Some(_) => Err("Padding length exceeds 255 bytes."),
+        None => Err("Padded size less than original size."),
     }
 }
