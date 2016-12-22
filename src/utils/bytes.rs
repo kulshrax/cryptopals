@@ -134,7 +134,7 @@ pub fn to_string<'a, T>(bytes: T) -> String
 /// Pad the given iterable of bytes to the given length using PKCS#7 padding.
 /// Padded length cannot be less than the original length, and can be at most
 /// 255 bytes greater than the original length.
-pub fn pad<'a, T>(bytes: T, length: usize) -> Result<Vec<u8>, &'static str>
+pub fn pad_pkcs7<'a, T>(bytes: T, length: usize) -> Result<Vec<u8>, &'static str>
     where T: IntoIterator<Item = &'a u8>
 {
     let vec = bytes.into_iter().cloned().collect::<Vec<u8>>();
