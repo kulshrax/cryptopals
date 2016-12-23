@@ -49,7 +49,7 @@ pub fn get_keysizes(ciphertext: &[u8], range: Range<usize>, limit: usize) -> Vec
 
     // Check key sizes in given size range.
     for size in range {
-        // Maximum number of chunks to test. Overall space/time usage is varies factorially
+        // Maximum number of chunks to test. Overall space/time usage varies factorially
         // with this parameter, so large values may cause this function to take a long time.
         let num_chunks = 4;
 
@@ -129,20 +129,4 @@ pub fn to_string<'a, T>(bytes: T) -> String
 {
     let vector = bytes.into_iter().cloned().collect::<Vec<u8>>();
     String::from_utf8_lossy(&vector).into_owned()
-}
-
-/// Pad the given iterable of bytes to the given length using PKCS#7 padding.
-/// Padded length cannot be less than the original length, and can be at most
-/// 255 bytes greater than the original length.
-pub fn pad_pkcs7<'a, T>(bytes: T, length: usize) -> Result<Vec<u8>, &'static str>
-    where T: IntoIterator<Item = &'a u8>
-{
-    let vec = bytes.into_iter().cloned().collect::<Vec<u8>>();
-    match length.checked_sub(vec.len()) {
-        Some(pad) if pad < 256 => {
-            Ok(vec.into_iter().chain(iter::repeat(pad as u8)).take(length).collect())
-        },
-        Some(_) => Err("Padding length exceeds 255 bytes."),
-        None => Err("Padded size less than original size."),
-    }
 }

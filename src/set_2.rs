@@ -1,10 +1,15 @@
-use utils::bytes;
+use utils::{bytes, crypto};
 
 /// Implement PKCS#7 padding.
 pub fn challenge_9() -> String {
     let input = &b"YELLOW SUBMARINE"[..];
-    bytes::to_string(&bytes::pad_pkcs7(input, 20).unwrap())
+    bytes::to_string(&crypto::pad_pkcs7(input, 20).unwrap())
 }
+
+pub fn challenge_10() -> String {
+    String::new()
+}
+
 
 #[cfg(test)]
 mod tests {
