@@ -39,7 +39,8 @@ pub fn encrypt_cbc(key: &[u8], iv: &[u8], data: &[u8]) -> Vec<u8> {
         // XOR with previous ciphertext block (or IV for the first block).
         let chained = bytes::xor(block, blocks.last().unwrap_or(&iv.to_vec()));
 
-        // Encrypt XOR'd block with AES-128-ECB.
+        // Encrypt XOR'd block with AES-128-ECB. Each encrypted block will end up
+        // being 256 bits long due to OpenSSL adding an IV to each block.
         blocks.push(encrypt(Cipher::aes_128_ecb(), key, None, &chained).unwrap());
     }
 
@@ -51,7 +52,8 @@ pub fn decrypt_cbc(key: &[u8], iv: &[u8], data: &[u8]) -> Vec<u8> {
     // Cached ciphertext block for chaining.
     let mut last = None;
 
-    data.chunks(16).flat_map(|block| {
+    // Decrypt 32 bytes at a time, due to OpenSSL adding an IV to each encrypted block.
+    data.chunks(32).flat_map(|block| {
         // Decrypt block level encryption.
         let decrypted = decrypt(Cipher::aes_128_ecb(), key, None, block).unwrap();
 
