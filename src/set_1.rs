@@ -2,9 +2,8 @@ use std::f64;
 
 use rustc_serialize::base64::*;
 use rustc_serialize::hex::*;
-use openssl::symm::{Cipher, decrypt};
 
-use utils::bytes;
+use utils::{bytes, crypto};
 
 /// Convert hex to base64.
 pub fn challenge_1() -> String {
@@ -97,11 +96,9 @@ pub fn challenge_6() -> (String, String) {
 pub fn challenge_7() -> String {
     let input = include_str!("data/7.txt").to_string().replace("\n", "");
     let ciphertext = input.from_base64().unwrap();
-
-    let cipher = Cipher::aes_128_ecb();
     let key = &b"YELLOW SUBMARINE"[..];
 
-    let decoded = decrypt(cipher, key, None, &ciphertext).unwrap();
+    let decoded = crypto::decrypt_ecb(key, None, &ciphertext, true);
     bytes::to_string(&decoded)
 }
 

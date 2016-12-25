@@ -1,5 +1,5 @@
 use std::iter;
-use openssl::symm::{Cipher, encrypt, decrypt};
+use openssl::symm::{Cipher, Crypter, Mode};
 use utils::bytes;
 
 /// Pad the given bytes array to the given length using PKCS#7 padding.
@@ -24,44 +24,86 @@ pub fn pad_pkcs7(bytes: &[u8], length: usize) -> Result<Vec<u8>, &'static str> {
 /// Returns None if the padding is invalid.
 pub fn strip_pkcs7(bytes: &[u8]) -> Option<Vec<u8>>
 {
+    if let Some(pad) = bytes.last() {
+        // Check if the last `pad` bytes all have a value equal to `pad`.
+        if bytes.iter().rev().take(*pad as usize).all(|byte| *byte == *pad) {
+            return Some(bytes[0 .. bytes.len() - *pad as usize].to_vec());
+        }
+    }
     None
 }
 
+// Clone of the openssl::symm::cipher() function, with the additional option to enable
+// or disable padding of the output.
+fn run_crypter(cipher: Cipher, mode: Mode, key: &[u8], iv: Option<&[u8]>, data: &[u8], pad: bool)
+          -> Vec<u8> {
+    let mut crypter = Crypter::new(cipher, mode, key, iv).unwrap();
+    crypter.pad(pad);
+    let mut output = vec![0; data.len() + cipher.block_size()];
+    let count = crypter.update(data, &mut output).unwrap();
+    let rest = crypter.finalize(&mut output[count..]).unwrap();
+    output.truncate(count + rest);
+    output
+}
+
+/// Encrypt the given data with AES-128-ECB encryption.
+pub fn encrypt_ecb(key: &[u8], iv: Option<&[u8]>, data: &[u8], pad: bool) -> Vec<u8> {
+    run_crypter(Cipher::aes_128_ecb(), Mode::Encrypt, key, iv, data, pad)
+}
+
+/// Decrypt data encrypted with AES-128-ECB encryption.
+pub fn decrypt_ecb(key: &[u8], iv: Option<&[u8]>, data: &[u8], pad: bool) -> Vec<u8> {
+    run_crypter(Cipher::aes_128_ecb(), Mode::Decrypt, key, iv, data, pad)
+}
+
 /// Basic implementation of a CBC-mode encryption, using OpenSSL's AES-128-ECB function
-/// as the underlying block cipher. The input plaintext can be arbirarily sized and
-/// will be padded to a multiple of 128 bytes with PKCS#7 padding. The key and IV
-/// must be 16 bytes (128 bits).
+/// as the underlying block cipher.
 pub fn encrypt_cbc(key: &[u8], iv: &[u8], data: &[u8]) -> Vec<u8> {
-    let mut blocks: Vec<Vec<u8>> = Vec::with_capacity((data.len() - 1) / 16 + 1);
+    // Hardcode this to 16 bytes since we're using 128-bit AES.
+    let block_size = 16;
+
+    // Number of 128-bit blocks in the output. If the input length is a perfect multiple of
+    // the block size, add an extra block due to PKCS#7 padding.
+    let num_blocks = data.len() / block_size + 1;
+
+    // Pad input to be a perfect multiple of the block size.
+    let padded = pad_pkcs7(data, num_blocks * block_size).unwrap();
+
+    // Output vector of encrypted blocks.
+    let mut blocks: Vec<Vec<u8>> = Vec::with_capacity(num_blocks);
 
     // Break input into 128-bit blocks.
-    for block in data.chunks(16) {
+    for block in padded.chunks(block_size) {
         // XOR with previous ciphertext block (or IV for the first block).
         let chained = bytes::xor(block, blocks.last().unwrap_or(&iv.to_vec()));
 
         // Encrypt XOR'd block with AES-128-ECB. Each encrypted block will end up
-        // being 256 bits long due to OpenSSL adding an IV to each block.
-        blocks.push(encrypt(Cipher::aes_128_ecb(), key, None, &chained).unwrap());
+        // being 256 bits long due to OpenSSL adding padding to each block.
+        blocks.push(encrypt_ecb(key, None, &chained, false));
     }
 
     // Concatenate blocks into final ciphertext.
     blocks.into_iter().flat_map(|block| block.into_iter()).collect()
 }
 
+/// Decrypt data encrypted AES-128-CBC, as implemented by the encrypt_cbc function.
 pub fn decrypt_cbc(key: &[u8], iv: &[u8], data: &[u8]) -> Vec<u8> {
     // Cached ciphertext block for chaining.
     let mut last = None;
 
-    // Decrypt 32 bytes at a time, due to OpenSSL adding an IV to each encrypted block.
-    data.chunks(32).flat_map(|block| {
+    // Decrypt 32 bytes at a time, due to OpenSSL adding padding to each block.
+    let padded = data.chunks(16).flat_map(|block| {
         // Decrypt block level encryption.
-        let decrypted = decrypt(Cipher::aes_128_ecb(), key, None, block).unwrap();
+        let decrypted = decrypt_ecb(key, None, block, false);
 
         // XOR against previous ciphertext block (or IV for the first block).
         let chained = bytes::xor(&decrypted, last.unwrap_or(iv));
         last = Some(block);
         chained.into_iter()
-    }).collect()
+    }).collect::<Vec<u8>>();
+
+    // Strip padding before returning data.
+    strip_pkcs7(&padded).unwrap()
 }
 
 #[cfg(test)]
@@ -70,7 +112,7 @@ mod tests {
 
     #[test]
     fn test_cbc() {
-        let input = &b"ABCDEFGHIJKLMNOP"[..];
+        let input = &b"The quick brown fox jumps over the lazy dog."[..];
         let key = &b"YELLOW SUBMARINE"[..];
         let iv =  &b"abcdefghijklmnop"[..];
         let encrypted = encrypt_cbc(key, iv, input);

@@ -1,3 +1,4 @@
+use rustc_serialize::base64::*;
 use utils::{bytes, crypto};
 
 /// Implement PKCS#7 padding.
@@ -7,7 +8,14 @@ pub fn challenge_9() -> String {
 }
 
 pub fn challenge_10() -> String {
-    String::new()
+    let input = include_str!("data/10.txt").to_string().replace("\n", "");
+    let ciphertext = input.from_base64().unwrap();
+
+    let key = &b"YELLOW SUBMARINE"[..];
+    let iv = [0u8; 16];
+
+    let decrypted = crypto::decrypt_cbc(key, &iv, &ciphertext);
+    bytes::to_string(&decrypted)
 }
 
 
@@ -20,5 +28,11 @@ mod tests {
         let result = challenge_9();
         let expected = "YELLOW SUBMARINE\x04\x04\x04\x04";
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn text_challenge_10() {
+        let result = challenge_10();
+        panic!("{:?}", result);
     }
 }
