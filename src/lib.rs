@@ -1,5 +1,6 @@
 extern crate itertools;
 extern crate openssl;
+extern crate rand;
 extern crate rustc_serialize;
 
 pub mod utils;

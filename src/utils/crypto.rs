@@ -1,5 +1,6 @@
 use std::iter;
 use openssl::symm::{Cipher, Crypter, Mode};
+use rand::{Rng, OsRng};
 use utils::bytes;
 
 /// Pad the given bytes array to the given length using PKCS#7 padding.
@@ -104,6 +105,35 @@ pub fn decrypt_cbc(key: &[u8], iv: &[u8], data: &[u8]) -> Vec<u8> {
 
     // Strip padding before returning data.
     strip_pkcs7(&padded).unwrap()
+}
+
+/// Encrypt the given data using 128-bit AES with a randomly generated key.
+/// CBC mode will be used 50% of the time (with a randomly generated IV),
+/// and ECB mode will be used otherwise.
+pub fn encryption_oracle(data: &[u8]) -> Vec<u8> {
+    let mut rng = OsRng::new().unwrap();
+
+    // Generate random AES key.
+    let key = &mut [0u8; 16][..];
+    rng.fill_bytes(key);
+
+    // Add random prefix and suffix to data.
+    let prefix_len = rng.gen_range(5usize, 10);
+    let suffix_len = rng.gen_range(5usize, 10);
+    let mut plaintext = Vec::with_capacity(prefix_len + data.len() + suffix_len);
+    plaintext.extend(rng.gen_iter::<u8>().take(prefix_len));
+    plaintext.extend(data);
+    plaintext.extend(rng.gen_iter::<u8>().take(suffix_len));
+
+    if rng.gen_weighted_bool(2) {
+        // CBC mode.
+        let iv = &mut [0u8; 16][..];
+        rng.fill_bytes(iv);
+        return encrypt_cbc(key, iv, &plaintext);
+    } else {
+        // ECB mode.
+        return encrypt_ecb(key, None, &plaintext, true);
+    }
 }
 
 #[cfg(test)]

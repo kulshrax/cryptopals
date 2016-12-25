@@ -19,6 +19,10 @@ pub fn challenge_10() -> String {
     bytes::to_string(&decrypted)
 }
 
+/// An ECB/CBC detection oracle.
+pub fn challenge_11() -> bool {
+    false
+}
 
 #[cfg(test)]
 mod tests {
@@ -36,5 +40,10 @@ mod tests {
         let result = challenge_10();
         let expected = include_str!("data/play_that_funky_music.txt");
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_challenge_11() {
+        assert!(challenge_11());
     }
 }

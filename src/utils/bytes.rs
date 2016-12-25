@@ -7,6 +7,14 @@ use itertools::Itertools;
 
 use utils::text::score_text;
 
+/// Convert an iterable of bytes to a printable string.
+pub fn to_string<'a, T>(bytes: T) -> String
+    where T: IntoIterator<Item = &'a u8>
+{
+    let vector = bytes.into_iter().cloned().collect::<Vec<u8>>();
+    String::from_utf8_lossy(&vector).into_owned()
+}
+
 /// XOR two byte strings, truncating the longer one if the sizes are different.
 pub fn xor<'a, 'b, A, B>(a: A, b: B) -> Vec<u8>
     where A: IntoIterator<Item = &'a u8>,
@@ -121,12 +129,4 @@ pub fn detect_ecb(bytes: &[u8], block_size: usize) -> i32 {
     }
 
     counts.values().cloned().max().unwrap_or(0)
-}
-
-/// Convert an iterable of bytes to a printable string.
-pub fn to_string<'a, T>(bytes: T) -> String
-    where T: IntoIterator<Item = &'a u8>
-{
-    let vector = bytes.into_iter().cloned().collect::<Vec<u8>>();
-    String::from_utf8_lossy(&vector).into_owned()
 }
