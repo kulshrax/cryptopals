@@ -33,6 +33,7 @@ mod tests {
     #[test]
     fn text_challenge_10() {
         let result = challenge_10();
-        panic!("{:?}", result);
+        let expected = include_str!("data/play_that_funky_music.txt");
+        assert_eq!(result, expected);
     }
 }
