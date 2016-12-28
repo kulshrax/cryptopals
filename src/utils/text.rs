@@ -30,7 +30,7 @@ fn alphabet_position(c: char) -> Option<usize> {
 }
 
 /// Score a text based on similarity to known English letter frequencies.
-pub fn score_text(text: &str) -> f64 {
+pub fn score(text: &str) -> f64 {
     let mut counts = [0.0f64; 26];
     let mut space = false;
 

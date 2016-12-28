@@ -109,8 +109,9 @@ pub fn decrypt_cbc(key: &[u8], iv: &[u8], data: &[u8]) -> Vec<u8> {
 
 /// Encrypt the given data using 128-bit AES with a randomly generated key.
 /// CBC mode will be used 50% of the time (with a randomly generated IV),
-/// and ECB mode will be used otherwise.
-pub fn encryption_oracle(data: &[u8]) -> Vec<u8> {
+/// and ECB mode will be used otherwise. Returns the encrypted data along
+/// with a boolean indicating that CBC mode was used.
+pub fn encryption_oracle(data: &[u8]) -> (Vec<u8>, bool) {
     let mut rng = OsRng::new().unwrap();
 
     // Generate random AES key.
@@ -125,15 +126,16 @@ pub fn encryption_oracle(data: &[u8]) -> Vec<u8> {
     plaintext.extend(data);
     plaintext.extend(rng.gen_iter::<u8>().take(suffix_len));
 
-    if rng.gen_weighted_bool(2) {
-        // CBC mode.
+    let cbc = rng.gen_weighted_bool(2);
+    let result = if cbc {
         let iv = &mut [0u8; 16][..];
         rng.fill_bytes(iv);
-        return encrypt_cbc(key, iv, &plaintext);
+        encrypt_cbc(key, iv, &plaintext)
     } else {
-        // ECB mode.
-        return encrypt_ecb(key, None, &plaintext, true);
-    }
+        encrypt_ecb(key, None, &plaintext, true)
+    };
+
+    (result, cbc)
 }
 
 #[cfg(test)]
