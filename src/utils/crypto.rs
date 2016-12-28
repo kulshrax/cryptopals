@@ -1,6 +1,7 @@
 use std::iter;
 use openssl::symm::{Cipher, Crypter, Mode};
 use rand::{Rng, OsRng};
+use rustc_serialize::base64::*;
 use utils::bytes;
 
 /// Pad the given bytes array to the given length using PKCS#7 padding.
@@ -136,6 +137,36 @@ pub fn encryption_oracle(data: &[u8]) -> (Vec<u8>, bool) {
     };
 
     (result, cbc)
+}
+
+/// Oracle struct that can be used to generate encrypted strings for challenge 12.
+/// Contains a random key that is unknown to the attacker and fixed for the lifetime
+/// of the oracle.
+pub struct UnknownStringOracle {
+    key: Vec<u8>
+}
+
+/// The oracle accepts an array of bytes as input, appends a fixed, unknown [to the attacker]
+/// string to it, and encrypts the result using AES-128-ECB using its fixed, unknown key.
+impl UnknownStringOracle {
+    pub fn new() -> UnknownStringOracle {
+        UnknownStringOracle {
+            key: bytes::random(16)
+        }
+    }
+
+    pub fn unknown_string() -> Vec<u8> {
+        "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg\
+         aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq\
+         dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg\
+         YnkK".from_base64().unwrap()
+    }
+
+    pub fn encrypt(&self, bytes: &[u8]) -> Vec<u8> {
+        let mut plaintext = bytes.to_vec();
+        plaintext.extend(Self::unknown_string());
+        encrypt_ecb(&self.key, None, &plaintext, true)
+    }
 }
 
 #[cfg(test)]

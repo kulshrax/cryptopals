@@ -71,3 +71,11 @@ pub fn max_repeated_blocks(bytes: &[u8], block_size: usize) -> i32 {
 
     counts.values().cloned().max().unwrap_or(0)
 }
+
+/// Given a ciphertext and a block size, returns true if the ciphertext appears to be
+/// encrypted using ECB mode. This is just a simple heuristic that looks for repeated
+/// blocks, and as such doesn't guarantee that ECB mode was used. The check will
+/// fail if the plaintext didn't have any repeated blocks to begin with.
+pub fn detect_ecb(bytes: &[u8], block_size: usize) -> bool {
+    max_repeated_blocks(bytes, block_size) > 1
+}

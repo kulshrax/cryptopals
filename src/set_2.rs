@@ -23,18 +23,14 @@ pub fn challenge_10() -> String {
 pub fn challenge_11() -> bool {
     let data = [0u8; 64];
     let (encrypted, cbc) = crypto::encryption_oracle(&data);
-    let num_repeated_blocks = attacks::max_repeated_blocks(&encrypted, 16);
-    (num_repeated_blocks > 1) != cbc
+    attacks::detect_ecb(&encrypted, 16) != cbc
 }
 
-///
+/// Byte-at-a-time ECB decryption (Simple).
 pub fn challenge_12() -> String {
-    let unknown = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg\
-                   aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq\
-                   dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg\
-                   YnkK".from_base64().unwrap();
-
-    "test".to_string()
+    let oracle = crypto::UnknownStringOracle::new();
+    let result = oracle.encrypt(&b"test"[..]);
+    bytes::to_string(&result)
 }
 
 #[cfg(test)]

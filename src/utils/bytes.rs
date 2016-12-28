@@ -1,3 +1,5 @@
+use rand::{Rng, OsRng};
+
 /// XOR two byte strings, truncating the longer one if the sizes are different.
 pub fn xor<'a, 'b, A, B>(a: A, b: B) -> Vec<u8>
     where A: IntoIterator<Item = &'a u8>,
@@ -55,4 +57,10 @@ pub fn transpose<'a, T>(input: T) -> Vec<Vec<u8>>
     }
 
     transposed
+}
+
+/// Convenience function to generate a vector of random bytes.
+pub fn random(size: usize) -> Vec<u8> {
+    let mut rng = OsRng::new().unwrap();
+    rng.gen_iter().take(size).collect()
 }
