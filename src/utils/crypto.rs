@@ -1,7 +1,9 @@
 use std::iter;
+
 use openssl::symm::{Cipher, Crypter, Mode};
 use rand::{Rng, OsRng};
 use rustc_serialize::base64::*;
+
 use utils::bytes;
 
 /// Pad the given bytes array to the given length using PKCS#7 padding.

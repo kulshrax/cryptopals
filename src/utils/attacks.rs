@@ -105,5 +105,25 @@ pub fn detect_block_size<F>(encrypt: &mut F) -> Option<usize>
 pub fn decrypt_ecb_suffix<F>(encrypt: &mut F, block_size: usize) -> String
     where F: FnMut(&[u8]) -> Vec<u8>
 {
-    String::new()
+    let mut decrypted = Vec::new();
+
+    for i in 1..block_size {
+        let mut pad = vec![0u8; block_size - i];
+        let encrypted = encrypt(&pad);
+        pad.extend(&decrypted);
+
+        // Try all possibilities for the last byte in the first block.
+        for byte in 0..255u8 {
+            pad.push(byte);
+            let test = encrypt(&pad);
+            if test[0..block_size] == encrypted[0..block_size] {
+                // Found matching byte!
+                decrypted.push(byte);
+                break;
+            }
+            pad.pop();
+        }
+    }
+
+    bytes::to_string(&decrypted)
 }

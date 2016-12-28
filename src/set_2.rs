@@ -79,7 +79,7 @@ mod tests {
     #[test]
     fn test_challenge_12() {
         let result = challenge_12();
-        let expected = String::new();
+        let expected = "hola";
         assert_eq!(result, expected);
     }
 }
