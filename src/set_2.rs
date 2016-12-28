@@ -27,6 +27,16 @@ pub fn challenge_11() -> bool {
     (num_repeated_blocks > 1) != cbc
 }
 
+///
+pub fn challenge_12() -> String {
+    let unknown = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg\
+                   aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq\
+                   dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg\
+                   YnkK".from_base64().unwrap();
+
+    "test".to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -47,9 +57,14 @@ mod tests {
 
     #[test]
     fn test_challenge_11() {
-        // Since encryption oracle output is non-deterministic, do 10 trials to be sure.
-        for _ in 0..10 {
+        // Since encryption oracle output is non-deterministic, do several trials to be sure.
+        for _ in 0..30 {
             assert!(challenge_11());
         }
+    }
+
+    #[test]
+    fn test_challenge_12() {
+        challnege_12();
     }
 }
