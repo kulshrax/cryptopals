@@ -61,7 +61,7 @@ pub fn get_keysizes(ciphertext: &[u8], range: Range<usize>, limit: usize) -> Vec
 
 /// Attempt to detect the use of an ECB mode block cipher by looking for repeated blocks
 /// in the given byte string. Returns the maximum number of repetitions found for any block.
-pub fn detect_ecb(bytes: &[u8], block_size: usize) -> i32 {
+pub fn max_repeated_blocks(bytes: &[u8], block_size: usize) -> i32 {
     let mut counts = HashMap::new();
 
     for chunk in bytes.chunks(block_size) {
@@ -70,16 +70,4 @@ pub fn detect_ecb(bytes: &[u8], block_size: usize) -> i32 {
     }
 
     counts.values().cloned().max().unwrap_or(0)
-}
-
-/// Given a ECB/CBC encryption oracle function, detect whether ECB or CBC mode was used
-/// by mounting a chosen-plaintext attack. Returns the detection success rate as a float
-/// for the given number of trials.
-pub fn cbc_ebc_oracle(encrypter: &Fn(&[u8]) -> (Vec<u8>, bool), trials: Option<u32>) -> f64 {
-    let mut total = 0;
-    let mut success = 0;
-    for _ in 0..trials.unwrap_or(1) {
-
-    }
-    success as f64 / total as f64
 }

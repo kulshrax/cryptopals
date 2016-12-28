@@ -115,7 +115,7 @@ pub fn challenge_8() -> (usize, String) {
     // some repeated 16-byte chunks. Will not work for arbitrary plaintexts.
     for (i, line) in input.lines().enumerate() {
         let bytes = line.from_hex().unwrap();
-        let count = attacks::detect_ecb(&bytes, 16);
+        let count = attacks::max_repeated_blocks(&bytes, 16);
         if count > max {
             max = count;
             index = i;

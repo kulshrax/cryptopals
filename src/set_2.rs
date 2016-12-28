@@ -1,5 +1,5 @@
 use rustc_serialize::base64::*;
-use utils::{bytes, crypto};
+use utils::{attacks, bytes, crypto};
 
 /// Implement PKCS#7 padding.
 pub fn challenge_9() -> String {
@@ -21,7 +21,10 @@ pub fn challenge_10() -> String {
 
 /// An ECB/CBC detection oracle.
 pub fn challenge_11() -> bool {
-    false
+    let data = [0u8; 64];
+    let (encrypted, cbc) = crypto::encryption_oracle(&data);
+    let num_repeated_blocks = attacks::max_repeated_blocks(&encrypted, 16);
+    (num_repeated_blocks > 1) != cbc
 }
 
 #[cfg(test)]
@@ -44,6 +47,9 @@ mod tests {
 
     #[test]
     fn test_challenge_11() {
-        assert!(challenge_11());
+        // Since encryption oracle output is non-deterministic, do 10 trials to be sure.
+        for _ in 0..10 {
+            assert!(challenge_11());
+        }
     }
 }
