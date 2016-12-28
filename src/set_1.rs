@@ -65,25 +65,28 @@ pub fn challenge_6() -> (String, String) {
     let input = include_str!("data/6.txt").to_string().replace("\n", "");
     let ciphertext = input.from_base64().unwrap();
 
-    // Get most likely key sizes.
-    let keysizes = attacks::get_keysizes(&ciphertext, 2..41, 3);
+    // Get most likely key size.
+    let keysizes = attacks::get_keysizes(&ciphertext, 2..41, 1);
 
     // Use the same brute force technique for breaking single-byte XOR encryption
     // to determine the most likely key for each given key size.
-    let keys = keysizes.iter().map(|size| {
+    let keys = keysizes.iter()
+        .map(|size| {
+            // Break cipher text into key sized chunks and transpose them into a vector of
+            // vectors of bytes, where the nth vector contains all bytes in the ciphertext
+            // that were XOR'd with the nth byte of the key. Allows us to generalize
+            // the single-byte brute force technique to a multi-byte repeating key.
+            let transposed = bytes::transpose(ciphertext.chunks(*size));
 
-        // Break cipher text into key sized chunks and transpose them into a vector of
-        // vectors of bytes, where the nth vector contains all bytes in the ciphertext
-        // that were XOR'd with the nth byte of the key. Allows us to generalize
-        // the single-byte brute force technique to a multi-byte repeating key.
-        let transposed = bytes::transpose(ciphertext.chunks(*size));
-
-        // Find the most likely key byte for each group of transposed bytes.
-        transposed.iter().map(|bytes| {
-            let (_, _, key_byte) = attacks::single_byte_brute_force(bytes);
-            key_byte
-        }).collect::<Vec<u8>>()
-    }).collect::<Vec<_>>();
+            // Find the most likely key byte for each group of transposed bytes.
+            transposed.iter()
+                .map(|bytes| {
+                    let (_, _, key_byte) = attacks::single_byte_brute_force(bytes);
+                    key_byte
+                })
+                .collect::<Vec<u8>>()
+        })
+        .collect::<Vec<_>>();
 
     // XOR the ciphertext with the found key, and convert the result into a string.
     let pad = keys[0].iter().cycle();

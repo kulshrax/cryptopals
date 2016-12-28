@@ -14,9 +14,8 @@ pub fn pad_pkcs7(bytes: &[u8], length: usize) -> Result<Vec<u8>, &'static str> {
                 .cloned()
                 .chain(iter::repeat(pad as u8))
                 .take(length)
-                .collect()
-            )
-        },
+                .collect())
+        }
         Some(_) => Err("Padding length exceeds 255 bytes."),
         None => Err("Padded size less than original size."),
     }
@@ -24,12 +23,11 @@ pub fn pad_pkcs7(bytes: &[u8], length: usize) -> Result<Vec<u8>, &'static str> {
 
 /// Remove PKCS#7 padding from the given byte array.
 /// Returns None if the padding is invalid.
-pub fn strip_pkcs7(bytes: &[u8]) -> Option<Vec<u8>>
-{
+pub fn strip_pkcs7(bytes: &[u8]) -> Option<Vec<u8>> {
     if let Some(pad) = bytes.last() {
         // Check if the last `pad` bytes all have a value equal to `pad`.
         if bytes.iter().rev().take(*pad as usize).all(|byte| *byte == *pad) {
-            return Some(bytes[0 .. bytes.len() - *pad as usize].to_vec());
+            return Some(bytes[0..bytes.len() - *pad as usize].to_vec());
         }
     }
     None
@@ -37,8 +35,13 @@ pub fn strip_pkcs7(bytes: &[u8]) -> Option<Vec<u8>>
 
 // Clone of the openssl::symm::cipher() function, with the additional option to enable
 // or disable padding of the output.
-fn run_crypter(cipher: Cipher, mode: Mode, key: &[u8], iv: Option<&[u8]>, data: &[u8], pad: bool)
-          -> Vec<u8> {
+fn run_crypter(cipher: Cipher,
+               mode: Mode,
+               key: &[u8],
+               iv: Option<&[u8]>,
+               data: &[u8],
+               pad: bool)
+               -> Vec<u8> {
     let mut crypter = Crypter::new(cipher, mode, key, iv).unwrap();
     crypter.pad(pad);
     let mut output = vec![0; data.len() + cipher.block_size()];
@@ -94,15 +97,17 @@ pub fn decrypt_cbc(key: &[u8], iv: &[u8], data: &[u8]) -> Vec<u8> {
     let mut last = None;
 
     // Decrypt 32 bytes at a time, due to OpenSSL adding padding to each block.
-    let padded = data.chunks(16).flat_map(|block| {
-        // Decrypt block level encryption.
-        let decrypted = decrypt_ecb(key, None, block, false);
+    let padded = data.chunks(16)
+        .flat_map(|block| {
+            // Decrypt block level encryption.
+            let decrypted = decrypt_ecb(key, None, block, false);
 
-        // XOR against previous ciphertext block (or IV for the first block).
-        let chained = bytes::xor(&decrypted, last.unwrap_or(iv));
-        last = Some(block);
-        chained.into_iter()
-    }).collect::<Vec<u8>>();
+            // XOR against previous ciphertext block (or IV for the first block).
+            let chained = bytes::xor(&decrypted, last.unwrap_or(iv));
+            last = Some(block);
+            chained.into_iter()
+        })
+        .collect::<Vec<u8>>();
 
     // Strip padding before returning data.
     strip_pkcs7(&padded).unwrap()
@@ -143,23 +148,23 @@ pub fn encryption_oracle(data: &[u8]) -> (Vec<u8>, bool) {
 /// Contains a random key that is unknown to the attacker and fixed for the lifetime
 /// of the oracle.
 pub struct UnknownStringOracle {
-    key: Vec<u8>
+    key: Vec<u8>,
 }
 
 /// The oracle accepts an array of bytes as input, appends a fixed, unknown [to the attacker]
 /// string to it, and encrypts the result using AES-128-ECB using its fixed, unknown key.
 impl UnknownStringOracle {
     pub fn new() -> UnknownStringOracle {
-        UnknownStringOracle {
-            key: bytes::random(16)
-        }
+        UnknownStringOracle { key: bytes::random(16) }
     }
 
     pub fn unknown_string() -> Vec<u8> {
         "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg\
          aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq\
          dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg\
-         YnkK".from_base64().unwrap()
+         YnkK"
+            .from_base64()
+            .unwrap()
     }
 
     pub fn encrypt(&self, bytes: &[u8]) -> Vec<u8> {
@@ -177,7 +182,7 @@ mod tests {
     fn test_cbc() {
         let input = &b"The quick brown fox jumps over the lazy dog."[..];
         let key = &b"YELLOW SUBMARINE"[..];
-        let iv =  &b"abcdefghijklmnop"[..];
+        let iv = &b"abcdefghijklmnop"[..];
         let encrypted = encrypt_cbc(key, iv, input);
         let decrypted = decrypt_cbc(key, iv, &encrypted);
         assert_eq!(input, &decrypted[..]);

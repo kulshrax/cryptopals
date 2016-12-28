@@ -41,13 +41,11 @@ pub fn get_keysizes(ciphertext: &[u8], range: Range<usize>, limit: usize) -> Vec
         let num_chunks = 4;
 
         // Get Hamming distances of pairs of chunks of the given size.
-        let dists = ciphertext
-            .chunks(size)
+        let dists = ciphertext.chunks(size)
             .take(num_chunks)
             .combinations(2)
-            .map(|pair| {
-                bytes::hamming_dist(pair[0], pair[1]) as f64 / size as f64
-            }).collect::<Vec<f64>>();
+            .map(|pair| bytes::hamming_dist(pair[0], pair[1]) as f64 / size as f64)
+            .collect::<Vec<f64>>();
 
         let avg = dists.iter().sum::<f64>() / dists.len() as f64;
         sizes.push((avg, size));
@@ -94,7 +92,7 @@ pub fn detect_block_size<F>(encrypt: &mut F) -> Option<usize>
         input.push(0);
         encrypted = encrypt(&input);
         if encrypted[0..i] == old[0..i] {
-            return Some(i)
+            return Some(i);
         }
     }
 
@@ -107,5 +105,5 @@ pub fn detect_block_size<F>(encrypt: &mut F) -> Option<usize>
 pub fn decrypt_ecb_suffix<F>(encrypt: &mut F, block_size: usize) -> String
     where F: FnMut(&[u8]) -> Vec<u8>
 {
-    bytes::to_string(&b"test"[..])
+    String::new()
 }

@@ -34,10 +34,10 @@ pub fn transpose<'a, T>(input: T) -> Vec<Vec<u8>>
     // Gather the input byte strings and determine the length of the first.
     let slices = input.into_iter().collect::<Vec<&[u8]>>();
     let n = slices.first()
-       .map(|slice| slice.len())
-       .unwrap_or(0);
+        .map(|slice| slice.len())
+        .unwrap_or(0);
 
-     // Initialize empty vectors that will contain the transposed bytes.
+    // Initialize empty vectors that will contain the transposed bytes.
     let mut transposed = (0..n)
         .map(|_| Vec::with_capacity(slices.len()))
         .collect::<Vec<Vec<u8>>>();
