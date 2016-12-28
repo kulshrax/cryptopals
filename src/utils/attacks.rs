@@ -79,3 +79,33 @@ pub fn max_repeated_blocks(bytes: &[u8], block_size: usize) -> i32 {
 pub fn detect_ecb(bytes: &[u8], block_size: usize) -> bool {
     max_repeated_blocks(bytes, block_size) > 1
 }
+
+/// Given a block cipher encryption function, detect the block size of the cipher.
+pub fn detect_block_size<F>(encrypt: &mut F) -> Option<usize>
+    where F: FnMut(&[u8]) -> Vec<u8>
+{
+    let mut input = vec![0u8];
+    let mut encrypted = encrypt(&input);
+
+    // Find an input size such that the prefix of the ciphertext remains fixed. This indicates
+    // that we've filled the first block on the previous iteration.
+    for i in 1..40 {
+        let old = encrypted;
+        input.push(0);
+        encrypted = encrypt(&input);
+        if encrypted[0..i] == old[0..i] {
+            return Some(i)
+        }
+    }
+
+    None
+}
+
+/// Given an ECB encryption function with known block size that appends an unknown suffix
+/// to its input prior to encryption, use knowledge of the block size and brute force to
+/// decrypt the suffix one byte at a time without knowlege of the key.
+pub fn decrypt_ecb_suffix<F>(encrypt: &mut F, block_size: usize) -> String
+    where F: FnMut(&[u8]) -> Vec<u8>
+{
+    bytes::to_string(&b"test"[..])
+}
