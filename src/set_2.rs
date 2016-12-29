@@ -43,16 +43,20 @@ pub fn challenge_12() -> String {
     let zeros = vec![0u8; block_size * 4];
     let encrypted_zeros = encrypt(&zeros);
 
+    // Determine how many additional blocks of suffix are being added to the input.
+    let num_blocks = encrypted_zeros.len() / block_size - 4;
+
     // Detect that ECB is being used. We know that this is the case.
     assert!(attacks::detect_ecb(&encrypted_zeros, block_size));
 
     // Decrypt the unknown string.
-    attacks::decrypt_ecb_suffix(&mut encrypt, block_size)
+    attacks::decrypt_ecb_suffix(&mut encrypt, block_size, num_blocks)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use utils::{bytes, crypto};
 
     #[test]
     fn test_challenge_9() {
@@ -78,8 +82,8 @@ mod tests {
 
     #[test]
     fn test_challenge_12() {
+        let expected = bytes::to_string(&crypto::UnknownStringOracle::unknown_string());
         let result = challenge_12();
-        let expected = "hola";
         assert_eq!(result, expected);
     }
 }

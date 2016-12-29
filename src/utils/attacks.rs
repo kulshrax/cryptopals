@@ -5,7 +5,7 @@ use std::iter;
 
 use itertools::Itertools;
 
-use utils::{bytes, text};
+use utils::{bytes, crypto, text};
 
 /// Brute force an English string that has been XOR'd with a single byte.
 pub fn single_byte_brute_force(ciphertext: &[u8]) -> (f64, String, u8) {
@@ -102,13 +102,14 @@ pub fn detect_block_size<F>(encrypt: &mut F) -> Option<usize>
 /// Given an ECB encryption function with known block size that appends an unknown suffix
 /// to its input prior to encryption, use knowledge of the block size and brute force to
 /// decrypt the suffix one byte at a time without knowlege of the key.
-pub fn decrypt_ecb_suffix<F>(encrypt: &mut F, block_size: usize) -> String
+pub fn decrypt_ecb_suffix<F>(encrypt: &mut F, block_size: usize, num_blocks: usize) -> String
     where F: FnMut(&[u8]) -> Vec<u8>
 {
     let mut decrypted = Vec::new();
+    let len = block_size * num_blocks;
 
-    for i in 1..block_size {
-        let mut pad = vec![0u8; block_size - i];
+    for i in 1..len {
+        let mut pad = vec![0u8; len - i];
         let encrypted = encrypt(&pad);
         pad.extend(&decrypted);
 
@@ -116,7 +117,7 @@ pub fn decrypt_ecb_suffix<F>(encrypt: &mut F, block_size: usize) -> String
         for byte in 0..255u8 {
             pad.push(byte);
             let test = encrypt(&pad);
-            if test[0..block_size] == encrypted[0..block_size] {
+            if test[0..len] == encrypted[0..len] {
                 // Found matching byte!
                 decrypted.push(byte);
                 break;
@@ -125,5 +126,6 @@ pub fn decrypt_ecb_suffix<F>(encrypt: &mut F, block_size: usize) -> String
         }
     }
 
-    bytes::to_string(&decrypted)
+    // Potentially strip PKCS#7 padding if any is present.
+    bytes::to_string(&crypto::strip_pkcs7(&decrypted).unwrap_or(decrypted))
 }
