@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use utils::math::cosine_sim;
 
 /// The alphabet stored as a static array for ease of access.
@@ -53,4 +54,17 @@ pub fn score(text: &str) -> f64 {
     // Compute similarity against known English letter frequencies.
     // No need to normalize the counts because cosine similarity takes care of this.
     cosine_sim(&LETTER_FREQS, &counts)
+}
+
+/// Parse a string of key-value pairs delimited by '&' and '=' into a HashMap.
+pub fn parse_key_value(string: &str) -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    for token in string.split('&') {
+        let mut pair = token.split('=');
+        if let Some(key) = pair.next() {
+            let value = pair.next().unwrap_or("");
+            map.insert(key.to_string(), value.to_string());
+        }
+    }
+    map
 }
