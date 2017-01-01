@@ -1,4 +1,7 @@
+use std::collections::HashMap;
+
 use rustc_serialize::base64::*;
+
 use utils::{attacks, bytes, crypto, oracles};
 
 /// Implement PKCS#7 padding.
@@ -53,6 +56,13 @@ pub fn challenge_12() -> String {
     attacks::decrypt_ecb_suffix(&mut encrypt, block_size, num_blocks)
 }
 
+/// ECB cut-and-paste.
+pub fn challenge_13() -> HashMap<String, String> {
+    let oracle = oracles::ProfileCookieOracle::new();
+    let cookie = oracle.encrypt_cookie("test");
+    oracle.decrypt_cookie(&cookie)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -85,5 +95,11 @@ mod tests {
         let expected = bytes::to_string(&oracles::UnknownStringOracle::unknown_string());
         let result = challenge_12();
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_challenge_13() {
+        let result = challenge_13();
+        assert_eq!(result.get("role").unwrap(), "admin");
     }
 }
