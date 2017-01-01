@@ -16,6 +16,10 @@ pub fn to_string<'a, T>(bytes: T) -> String
     String::from_utf8_lossy(&vector).into_owned()
 }
 
+pub fn from_string(string: &str) -> Vec<u8> {
+    string.chars().map(|c| c as u8).collect()
+}
+
 /// Compute the bitwise Hamming distance between two byte arrays.
 pub fn hamming_dist(a: &[u8], b: &[u8]) -> u32 {
     a.iter().zip(b.iter()).map(|(x, y)| (x ^ y).count_ones()).sum()

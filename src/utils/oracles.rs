@@ -47,7 +47,7 @@ pub struct UnknownStringOracle {
 /// The oracle accepts an array of bytes as input, appends a fixed, unknown [to the attacker]
 /// string to it, and encrypts the result using AES-128-ECB using its fixed, unknown key.
 impl UnknownStringOracle {
-    pub fn new() -> UnknownStringOracle {
+    pub fn new() -> Self {
         UnknownStringOracle { key: bytes::random(16) }
     }
 
@@ -67,28 +67,62 @@ impl UnknownStringOracle {
     }
 }
 
-/// Parse a string of key-value pairs delimited by '&' and '=' into a HashMap.
-pub fn parse_cookie(string: &str) -> HashMap<String, String> {
-    let mut map = HashMap::new();
-    for token in string.split('&') {
-        let mut pair = token.split('=');
-        if let Some(key) = pair.next() {
-            let value = pair.next().unwrap_or("");
-            map.insert(key.to_string(), value.to_string());
-        }
-    }
-    map
+
+
+pub struct ProfileCookieOracle {
+    key: Vec<u8>,
 }
 
-// Turn an iterable of key-value pairs into a cookie string.
-pub fn make_cookie<'a, T>(pairs: T) -> String
-    where T: IntoIterator<Item = (&'a str, &'a str)>
-{
-    pairs.into_iter()
-        .map(|(key, value)| {
-            key.to_string() + "=" + value
-        })
-        .intersperse("&".to_string())
-        .collect::<Vec<_>>()
-        .concat()
+
+impl ProfileCookieOracle {
+    pub fn new() -> Self {
+        ProfileCookieOracle { key: bytes::random(16) }
+    }
+
+    /// Generate an encrypted profile cookie with the given email address.
+    pub fn encrypt_cookie(&self, email: &str) -> Vec<u8> {
+        let profile = bytes::from_string(&Self::profile_for(email));
+        crypto::encrypt_ecb(&self.key, None, &profile, true)
+    }
+
+    /// Decrypt and parse the given byte string as a cookie.
+    pub fn decrypt_cookie(&self, bytes: &[u8]) -> HashMap<String, String> {
+        let profile = bytes::to_string(&crypto::decrypt_ecb(&self.key, None, bytes, true));
+        Self::parse_cookie(&profile)
+    }
+
+    /// Parse a string of key-value pairs delimited by '&' and '=' into a HashMap.
+    fn parse_cookie(string: &str) -> HashMap<String, String> {
+        let mut map = HashMap::new();
+        for token in string.split('&') {
+            let mut pair = token.split('=');
+            if let Some(key) = pair.next() {
+                let value = pair.next().unwrap_or("");
+                map.insert(key.to_string(), value.to_string());
+            }
+        }
+        map
+    }
+
+    /// Turn an iterable of key-value pairs into a cookie string.
+    fn make_cookie<'a, T>(pairs: T) -> String
+        where T: IntoIterator<Item = (&'a str, &'a str)>
+    {
+        pairs.into_iter()
+            .map(|(key, value)| {
+                key.to_string() + "=" + value
+            })
+            .intersperse("&".to_string())
+            .collect::<Vec<_>>()
+            .concat()
+    }
+
+    /// Generated profile cookies for a given email address, following a fixed format.
+    fn profile_for(email: &str) -> String {
+        let mut map = HashMap::new();
+        map.insert("email", email);
+        map.insert("uid", "10");
+        map.insert("role", "user");
+        Self::make_cookie(map)
+    }
 }
