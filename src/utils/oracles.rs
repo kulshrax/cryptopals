@@ -105,12 +105,12 @@ impl ProfileCookieOracle {
     }
 
     /// Turn an iterable of key-value pairs into a cookie string.
-    fn make_cookie<'a, T>(pairs: T) -> String
-        where T: IntoIterator<Item = (&'a str, &'a str)>
+    fn make_cookie<T>(pairs: T) -> String
+        where T: IntoIterator<Item = (String, String)>
     {
         pairs.into_iter()
             .map(|(key, value)| {
-                key.to_string() + "=" + value
+                key.to_string() + "=" + &value
             })
             .intersperse("&".to_string())
             .collect::<Vec<_>>()
@@ -120,9 +120,26 @@ impl ProfileCookieOracle {
     /// Generated profile cookies for a given email address, following a fixed format.
     fn profile_for(email: &str) -> String {
         let mut map = HashMap::new();
-        map.insert("email", email);
-        map.insert("uid", "10");
-        map.insert("role", "user");
+        let sanitized = email.replace("&", "").replace("=", "");
+        map.insert("email".to_string(), sanitized);
+        map.insert("uid".to_string(), "10".to_string());
+        map.insert("role".to_string(), "user".to_string());
         Self::make_cookie(map)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_profile_cookie() {
+        let oracle = ProfileCookieOracle::new();
+        let cookie = oracle.encrypt_cookie("foo@bar.com&role=admin");
+        let result = oracle.decrypt_cookie(&cookie);
+
+        assert_eq!(result.get("uid"), Some(&"10".to_string()));
+        assert_eq!(result.get("email"), Some(&"foo@bar.comroleadmin".to_string()));
+        assert_eq!(result.get("role"), Some(&"user".to_string()));
     }
 }

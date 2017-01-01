@@ -56,7 +56,7 @@ pub fn challenge_12() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use utils::{bytes, crypto};
+    use utils::{bytes, oracles};
 
     #[test]
     fn test_challenge_9() {
@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn test_challenge_12() {
-        let expected = bytes::to_string(&crypto::UnknownStringOracle::unknown_string());
+        let expected = bytes::to_string(&oracles::UnknownStringOracle::unknown_string());
         let result = challenge_12();
         assert_eq!(result, expected);
     }
