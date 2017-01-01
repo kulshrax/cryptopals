@@ -1,5 +1,5 @@
 use rustc_serialize::base64::*;
-use utils::{attacks, bytes, crypto};
+use utils::{attacks, bytes, crypto, oracles};
 
 /// Implement PKCS#7 padding.
 pub fn challenge_9() -> String {
@@ -22,14 +22,14 @@ pub fn challenge_10() -> String {
 /// An ECB/CBC detection oracle.
 pub fn challenge_11() -> bool {
     let data = [0u8; 64];
-    let (encrypted, cbc) = crypto::encryption_oracle(&data);
+    let (encrypted, cbc) = oracles::encryption_oracle(&data);
     attacks::detect_ecb(&encrypted, 16) != cbc
 }
 
 /// Byte-at-a-time ECB decryption (Simple).
 pub fn challenge_12() -> String {
     // Initialize the oracle and wrap it in a closure so it can be easily passed around.
-    let oracle = crypto::UnknownStringOracle::new();
+    let oracle = oracles::UnknownStringOracle::new();
     let mut encrypt = |bytes: &[u8]| -> Vec<u8> { oracle.encrypt(bytes) };
 
     // Detect block size.
