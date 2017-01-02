@@ -79,13 +79,23 @@ pub fn challenge_13() -> HashMap<String, String> {
     oracle.decrypt_cookie(&tampered)
 }
 
-///
+/// Byte-at-a-time ECB decryption (Harder).
+pub fn challenge_14() {
+
+}
+
+/// PKCS#7 padding validation.
 pub fn challenge_15() -> (Option<Vec<u8>>, Option<Vec<u8>>, Option<Vec<u8>>) {
     (
         crypto::strip_pkcs7(&b"ICE ICE BABY\x04\x04\x04\x04"[..]),
         crypto::strip_pkcs7(&b"ICE ICE BABY\x05\x05\x05\x05"[..]),
         crypto::strip_pkcs7(&b"ICE ICE BABY\x01\x02\x03\x04"[..]),
     )
+}
+
+/// CBC bitflipping attacks.
+pub fn challenge_16() {
+
 }
 
 #[cfg(test)]
@@ -129,9 +139,19 @@ mod tests {
     }
 
     #[test]
+    fn test_challenge_14() {
+
+    }
+
+    #[test]
     fn test_challenge_15() {
         let result = challenge_15();
         let expected = (Some(b"ICE ICE BABY"[..].to_vec()), None, None);
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_challenge_16() {
+
     }
 }
