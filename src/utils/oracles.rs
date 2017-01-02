@@ -119,12 +119,13 @@ impl ProfileCookieOracle {
 
     /// Generated profile cookies for a given email address, following a fixed format.
     fn profile_for(email: &str) -> String {
-        let mut map = HashMap::new();
+        // Use vector instead of map to maintain ordering.
+        let mut pairs = Vec::new();
         let sanitized = email.replace("&", "").replace("=", "");
-        map.insert("email".to_string(), sanitized);
-        map.insert("uid".to_string(), "10".to_string());
-        map.insert("role".to_string(), "user".to_string());
-        Self::make_cookie(map)
+        pairs.push(("email".to_string(), sanitized));
+        pairs.push(("uid".to_string(), "10".to_string()));
+        pairs.push(("role".to_string(), "user".to_string()));
+        Self::make_cookie(pairs)
     }
 }
 
