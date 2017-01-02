@@ -64,11 +64,11 @@ pub fn challenge_13() -> HashMap<String, String> {
     // at the start of a new block, and create an intermediate block with "admin" at the
     // start of it (followed by the appropriate PKCS#7 padding, since the "user" block is at
     // the end of the ciphertext), we can replace the last block of the ciphertext with that
-    // block. See the diagram below. The dots after "admin" should be replaced with valid
+    // block. See the diagram below. The B's after "admin" should be replaced with valid
     // padding bytes, namely the value 11 (0x0B) repeated 11 times.
     //
-    // |email=..........|admin...........|...&uid=10&role=|user            |
-    // |0123456789abcdef|0123456789abcdef|0123456789abcdef|0123456789abcdef|
+    // |email=..........|adminBBBBBBBBBBB|...&uid=10&role=|userCCCCCCCCCCCC|
+    // |0123456789ABCDEF|0123456789ABCDEF|0123456789ABCDEF|0123456789ABCDEF|
 
     let oracle = oracles::ProfileCookieOracle::new();
     let email = "..........admin\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b...";
@@ -77,6 +77,15 @@ pub fn challenge_13() -> HashMap<String, String> {
     tampered.extend(&cookie[0..48]);
     tampered.extend(&cookie[16..32]);
     oracle.decrypt_cookie(&tampered)
+}
+
+///
+pub fn challenge_15() -> (Option<Vec<u8>>, Option<Vec<u8>>, Option<Vec<u8>>) {
+    (
+        crypto::strip_pkcs7(&b"ICE ICE BABY\x04\x04\x04\x04"[..]),
+        crypto::strip_pkcs7(&b"ICE ICE BABY\x05\x05\x05\x05"[..]),
+        crypto::strip_pkcs7(&b"ICE ICE BABY\x01\x02\x03\x04"[..]),
+    )
 }
 
 #[cfg(test)]
@@ -117,5 +126,12 @@ mod tests {
     fn test_challenge_13() {
         let result = challenge_13();
         assert_eq!(result.get("role").unwrap(), "admin");
+    }
+
+    #[test]
+    fn test_challenge_15() {
+        let result = challenge_15();
+        let expected = (Some(b"ICE ICE BABY"[..].to_vec()), None, None);
+        assert_eq!(result, expected);
     }
 }
