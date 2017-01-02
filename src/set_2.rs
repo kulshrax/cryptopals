@@ -58,9 +58,25 @@ pub fn challenge_12() -> String {
 
 /// ECB cut-and-paste.
 pub fn challenge_13() -> HashMap<String, String> {
+
+    // Each block of the ciphertext is encrypted independently with the same key, so we can
+    // rearrange blocks arbitrarily. If we create an email whose length forces "user" to be
+    // at the start of a new block, and create an intermediate block with "admin" at the
+    // start of it (followed by the appropriate PKCS#7 padding, since the "user" block is at
+    // the end of the ciphertext), we can replace the last block of the ciphertext with that
+    // block. See the diagram below. The dots after "admin" should be replaced with valid
+    // padding bytes, namely the value 11 (0x0B) repeated 11 times.
+    //
+    // |email=..........|admin...........|...&uid=10&role=|user            |
+    // |0123456789abcdef|0123456789abcdef|0123456789abcdef|0123456789abcdef|
+
     let oracle = oracles::ProfileCookieOracle::new();
-    let cookie = oracle.encrypt_cookie("test");
-    oracle.decrypt_cookie(&cookie)
+    let email = "..........admin\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b...";
+    let cookie = oracle.encrypt_cookie(email);
+    let mut tampered = Vec::new();
+    tampered.extend(&cookie[0..48]);
+    tampered.extend(&cookie[16..32]);
+    oracle.decrypt_cookie(&tampered)
 }
 
 #[cfg(test)]

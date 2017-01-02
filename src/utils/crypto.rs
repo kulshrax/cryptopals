@@ -96,7 +96,7 @@ pub fn decrypt_cbc(key: &[u8], iv: &[u8], data: &[u8]) -> Vec<u8> {
     // Cached ciphertext block for chaining.
     let mut last = None;
 
-    // Decrypt 32 bytes at a time, due to OpenSSL adding padding to each block.
+    // Break input into 128-bit blocks.
     let padded = data.chunks(16)
         .flat_map(|block| {
             // Decrypt block level encryption.
