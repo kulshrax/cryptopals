@@ -42,13 +42,25 @@ pub fn encryption_oracle(data: &[u8]) -> (Vec<u8>, bool) {
 /// of the oracle.
 pub struct UnknownStringOracle {
     key: Vec<u8>,
+    prefix: Option<Vec<u8>>
 }
 
 /// The oracle accepts an array of bytes as input, appends a fixed, unknown [to the attacker]
 /// string to it, and encrypts the result using AES-128-ECB using its fixed, unknown key.
 impl UnknownStringOracle {
-    pub fn new() -> Self {
-        UnknownStringOracle { key: bytes::random(16) }
+    pub fn new(add_prefix: bool) -> Self {
+        let prefix = if add_prefix {
+            let mut rng = OsRng::new().unwrap();
+            let size = rng.gen_range(0usize, 128);
+            Some(bytes::random(size))
+        } else {
+            None
+        };
+
+        UnknownStringOracle {
+            key: bytes::random(16),
+            prefix: prefix
+        }
     }
 
     pub fn unknown_string() -> Vec<u8> {
@@ -61,18 +73,19 @@ impl UnknownStringOracle {
     }
 
     pub fn encrypt(&self, bytes: &[u8]) -> Vec<u8> {
-        let mut plaintext = bytes.to_vec();
+        let mut plaintext = Vec::new();
+        if let Some(ref prefix) = self.prefix {
+            plaintext.extend(prefix);
+        }
+        plaintext.extend(bytes);
         plaintext.extend(Self::unknown_string());
         crypto::encrypt_ecb(&self.key, None, &plaintext, true)
     }
 }
 
-
-
 pub struct ProfileCookieOracle {
     key: Vec<u8>,
 }
-
 
 impl ProfileCookieOracle {
     pub fn new() -> Self {

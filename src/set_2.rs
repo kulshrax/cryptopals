@@ -32,7 +32,7 @@ pub fn challenge_11() -> bool {
 /// Byte-at-a-time ECB decryption (Simple).
 pub fn challenge_12() -> String {
     // Initialize the oracle and wrap it in a closure so it can be easily passed around.
-    let oracle = oracles::UnknownStringOracle::new();
+    let oracle = oracles::UnknownStringOracle::new(false);
     let mut encrypt = |bytes: &[u8]| -> Vec<u8> { oracle.encrypt(bytes) };
 
     // Detect block size.
