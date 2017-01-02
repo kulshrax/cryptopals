@@ -134,11 +134,43 @@ impl ProfileCookieOracle {
     fn profile_for(email: &str) -> String {
         // Use vector instead of map to maintain ordering.
         let mut pairs = Vec::new();
-        let sanitized = email.replace("&", "").replace("=", "");
+        let sanitized = email.replace("&", "%3B").replace("=", "%3D");
         pairs.push(("email".to_string(), sanitized));
         pairs.push(("uid".to_string(), "10".to_string()));
         pairs.push(("role".to_string(), "user".to_string()));
         Self::make_cookie(pairs)
+    }
+}
+
+pub struct CBCCookieOracle {
+    key: Vec<u8>,
+    iv: Vec<u8>,
+}
+
+impl CBCCookieOracle {
+    pub fn new() -> Self {
+        CBCCookieOracle {
+            key: bytes::random(16),
+            iv: bytes::random(16)
+        }
+    }
+
+    /// Generate a cookie with the given user data, encrypted with AES-128-CBC.
+    /// User data is sanitized before encryption.
+    pub fn encrypt(&self, data: &str) -> Vec<u8> {
+        let prefix = "comment1=cooking%20MCs;userdata=";
+        let suffix = ";comment2=%20like%20a%20pound%20of%20bacon";
+        let sanitized = data.replace("&", "%3B").replace("=", "%3D");
+        let combined = prefix.to_string() + &sanitized + suffix;
+        let bytes = bytes::from_string(&combined);
+        crypto::encrypt_cbc(&self.key, &self.iv, &bytes)
+    }
+
+    /// Return whether the given encrypted cookie contains the substring ";admin=true;".
+    pub fn validate(&self, encrypted: &[u8]) -> bool {
+        let decrypted = crypto::decrypt_cbc(&self.key, &self.iv, &encrypted);
+        let cookie = bytes::to_string(&decrypted);
+        cookie.contains(";admin=true;")
     }
 }
 
@@ -153,7 +185,7 @@ mod tests {
         let result = oracle.decrypt_cookie(&cookie);
 
         assert_eq!(result.get("uid"), Some(&"10".to_string()));
-        assert_eq!(result.get("email"), Some(&"foo@bar.comroleadmin".to_string()));
+        assert_eq!(result.get("email"), Some(&"foo@bar.com%3Brole%3Dadmin".to_string()));
         assert_eq!(result.get("role"), Some(&"user".to_string()));
     }
 }
