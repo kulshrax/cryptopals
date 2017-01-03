@@ -81,7 +81,7 @@ pub fn challenge_13() -> HashMap<String, String> {
 
 /// Byte-at-a-time ECB decryption (Harder).
 pub fn challenge_14() {
-
+    
 }
 
 /// PKCS#7 padding validation.

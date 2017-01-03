@@ -9,13 +9,12 @@ use utils::{attacks, bytes, crypto};
 pub fn challenge_1() -> String {
     let input = "49276d206b696c6c696e6720796f757220627261696e206c\
                  696b65206120706f69736f6e6f7573206d757368726f6f6d";
-    let config = Config {
-        char_set: CharacterSet::Standard,
-        newline: Newline::LF,
-        pad: false,
-        line_length: None,
-    };
-    input.from_hex().unwrap().to_base64(config)
+
+    // For funsies, the bytes module includes homemade functions for encoding and decoding
+    // hex and base64 encoded strings. For the remainder of the challenges, we'll use the
+    // standard rustc_serialize crate to do this conversion instead, since it is likely
+    // more rebust and has a nicer API.
+    bytes::hex_to_base64(input)
 }
 
 /// Fixed XOR.
