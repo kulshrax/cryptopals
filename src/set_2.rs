@@ -101,16 +101,16 @@ pub fn challenge_16() -> String {
     // transform those bytes into the correct characters by flipping the lowest order
     // bits of the corresponding bytes in the previous block of ciphertext.
     //
-    // |comment1=cooking|%20MCs;userdata=|................|:admin<true:....|
-    // |0123456789ABCDEF|0123456789ABCDEF|0123456789ABCDEF|0123456789ABCDEF|
+    // |comment1=cooking|%20MCs;userdata=|:admin<true:....|
+    // |0123456789ABCDEF|0123456789ABCDEF|0123456789ABCDEF|
 
     let oracle = oracles::CBCCookieOracle::new();
-    let userdata = "................:admin<true:....";
+    let userdata = ":admin<true:....";
     let mut ciphertext = oracle.encrypt(userdata);
 
-    ciphertext[32] ^= 1;
-    ciphertext[38] ^= 1;
-    ciphertext[43] ^= 1;
+    ciphertext[16] ^= 1;
+    ciphertext[22] ^= 1;
+    ciphertext[27] ^= 1;
 
     oracle.decrypt(&ciphertext)
 }

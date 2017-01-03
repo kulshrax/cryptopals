@@ -184,7 +184,7 @@ mod tests {
         let result = oracle.decrypt_cookie(&cookie);
 
         assert_eq!(result.get("uid"), Some(&"10".to_string()));
-        assert_eq!(result.get("email"), Some(&"foo@bar.com%3Brole%3Dadmin".to_string()));
+        assert_eq!(result.get("email"), Some(&"foo@bar.com%26role%3Dadmin".to_string()));
         assert_eq!(result.get("role"), Some(&"user".to_string()));
     }
 }
