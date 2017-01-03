@@ -94,8 +94,25 @@ pub fn challenge_15() -> (Option<Vec<u8>>, Option<Vec<u8>>, Option<Vec<u8>>) {
 }
 
 /// CBC bitflipping attacks.
-pub fn challenge_16() {
+pub fn challenge_16() -> String {
 
+    // ';' has ASCII code 59 and '=' has ASCII code 61. By replacing them with
+    // ':' (ASCII code 58) and '<' (ASCII code 60), we can make CBC decryption
+    // transform those bytes into the correct characters by flipping the lowest order
+    // bits of the corresponding bytes in the previous block of ciphertext.
+    //
+    // |comment1=cooking|%20MCs;userdata=|................|:admin<true:....|
+    // |0123456789ABCDEF|0123456789ABCDEF|0123456789ABCDEF|0123456789ABCDEF|
+
+    let oracle = oracles::CBCCookieOracle::new();
+    let userdata = "................:admin<true:....";
+    let mut ciphertext = oracle.encrypt(userdata);
+
+    *(&mut ciphertext[32]) ^= 1u8;
+    *(&mut ciphertext[38]) ^= 1u8;
+    *(&mut ciphertext[43]) ^= 1u8;
+
+    oracle.decrypt(&ciphertext)
 }
 
 #[cfg(test)]
@@ -152,6 +169,7 @@ mod tests {
 
     #[test]
     fn test_challenge_16() {
-
+        let result = challenge_16();
+        assert!(result.contains(";admin=true;"));
     }
 }
