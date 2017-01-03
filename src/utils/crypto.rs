@@ -82,8 +82,7 @@ pub fn encrypt_cbc(key: &[u8], iv: &[u8], data: &[u8]) -> Vec<u8> {
         // XOR with previous ciphertext block (or IV for the first block).
         let chained = bytes::xor(block, blocks.last().unwrap_or(&iv.to_vec()));
 
-        // Encrypt XOR'd block with AES-128-ECB. Each encrypted block will end up
-        // being 256 bits long due to OpenSSL adding padding to each block.
+        // Encrypt XOR'd block with AES-128-ECB.
         blocks.push(encrypt_ecb(key, None, &chained, false));
     }
 

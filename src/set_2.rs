@@ -81,7 +81,29 @@ pub fn challenge_13() -> HashMap<String, String> {
 
 /// Byte-at-a-time ECB decryption (Harder).
 pub fn challenge_14() {
-    
+    // Initialize the oracle and wrap it in a closure so it can be easily passed around.
+    let oracle = oracles::UnknownStringOracle::new(false);
+    let mut encrypt = |bytes: &[u8]| -> Vec<u8> { oracle.encrypt(bytes) };
+
+    // Detect block size.
+    let block_size = attacks::detect_block_size(&mut encrypt).unwrap();
+
+    // We know that the block size is actually 128 bits.
+    assert_eq!(block_size, 16);
+
+    // Multiply block size by 4 to ensure that even if an arbitrary amount of random
+    // padding is preprended by the oracle, we will still have two full blocks of zeros.
+    let zeros = vec![0u8; block_size * 4];
+    let encrypted_zeros = encrypt(&zeros);
+
+    // Determine how many additional blocks of suffix are being added to the input.
+    let num_blocks = encrypted_zeros.len() / block_size - 4;
+
+    // Detect that ECB is being used. We know that this is the case.
+    assert!(attacks::detect_ecb(&encrypted_zeros, block_size));
+
+    // Decrypt the unknown string.
+    attacks::decrypt_ecb_suffix(&mut encrypt, block_size, num_blocks)
 }
 
 /// PKCS#7 padding validation.
@@ -157,7 +179,9 @@ mod tests {
 
     #[test]
     fn test_challenge_14() {
-
+        let expected = bytes::to_string(&oracles::UnknownStringOracle::unknown_string());
+        let result = challenge_14();
+        assert_eq!(result, expected);
     }
 
     #[test]
