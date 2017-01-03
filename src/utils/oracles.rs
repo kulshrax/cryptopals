@@ -134,7 +134,7 @@ impl ProfileCookieOracle {
     fn profile_for(email: &str) -> String {
         // Use vector instead of map to maintain ordering.
         let mut pairs = Vec::new();
-        let sanitized = email.replace("&", "%3B").replace("=", "%3D");
+        let sanitized = email.replace("&", "%26").replace("=", "%3D");
         pairs.push(("email".to_string(), sanitized));
         pairs.push(("uid".to_string(), "10".to_string()));
         pairs.push(("role".to_string(), "user".to_string()));
@@ -160,7 +160,7 @@ impl CBCCookieOracle {
     pub fn encrypt(&self, data: &str) -> Vec<u8> {
         let prefix = "comment1=cooking%20MCs;userdata=";
         let suffix = ";comment2=%20like%20a%20pound%20of%20bacon";
-        let sanitized = data.replace("&", "%3B").replace("=", "%3D");
+        let sanitized = data.replace(";", "%3B").replace("=", "%3D");
         let combined = prefix.to_string() + &sanitized + suffix;
         let bytes = bytes::from_string(&combined);
         crypto::encrypt_cbc(&self.key, &self.iv, &bytes)

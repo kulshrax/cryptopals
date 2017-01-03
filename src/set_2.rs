@@ -108,9 +108,9 @@ pub fn challenge_16() -> String {
     let userdata = "................:admin<true:....";
     let mut ciphertext = oracle.encrypt(userdata);
 
-    *(&mut ciphertext[32]) ^= 1u8;
-    *(&mut ciphertext[38]) ^= 1u8;
-    *(&mut ciphertext[43]) ^= 1u8;
+    ciphertext[32] ^= 1;
+    ciphertext[38] ^= 1;
+    ciphertext[43] ^= 1;
 
     oracle.decrypt(&ciphertext)
 }
